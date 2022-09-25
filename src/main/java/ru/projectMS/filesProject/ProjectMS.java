@@ -45,7 +45,8 @@ public class ProjectMS {
                     System.out.println("Веедите путь до файла MS Project");
 
 
-                    String filename = "d:\\onest.mpp"; // эту комментировать
+//                    String filename = "d:\\onest.mpp"; // эту комментировать
+                    String filename = "d:\\example2.mpp"; // эту комментировать
 //
 //                    Scanner sc = new Scanner(System.in);
 //                    String path = sc.nextLine();
@@ -189,12 +190,13 @@ public class ProjectMS {
         String sumTask = "true";
         System.out.println("Reading tasks ");
 
+
         for (Task task : file.getTasks()) {
             Z++;
 //            System.out.print(Z);
 //            System.out.println(task.getOutlineCode(2));
 
-
+//            System.out.println((double)task.getPercentageComplete());
             if (Z % 10 == 0) {
                 System.out.print("\r");
             } else {
@@ -205,8 +207,8 @@ public class ProjectMS {
 
             if (task.getSummary() == true && task.getID() != 0 && task.getOutlineCode(2) != null) {
 //                System.out.println(task.getOutlineCode(2));
-                dbHandler.insertSumTask(task.getName(), task.getID(), typeFact, task.getOutlineCode(2), finish, sumTask, projectName);
-                dbHandler.insertSumTask(task.getName(), task.getID(), typePlan, task.getOutlineCode(2), finish, sumTask, projectName);
+                dbHandler.insertSumTask(task.getName(), task.getID(), typeFact, task.getOutlineCode(2), finish, sumTask, projectName, (double)task.getPercentageComplete() );
+                dbHandler.insertSumTask(task.getName(), task.getID(), typePlan, task.getOutlineCode(2), finish, sumTask, projectName, (double)task.getPercentageComplete());
             }
 
 

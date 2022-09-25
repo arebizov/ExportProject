@@ -12,6 +12,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.*;
+import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -85,11 +87,11 @@ public class DbHandler {
     }
 
 
-    public void insertSumTask(String taskName, int taskId, String type, String typeWork, String finish, String sumTask, String projectName) throws SQLException {
+    public void insertSumTask(String taskName, int taskId, String type, String typeWork, String finish, String sumTask, String projectName, double val) throws SQLException {
 
 
         JdbcConnectionPool jdbcConnectionPool = getConnectionPool();
-        String Query = "INSERT INTO PROJECT (taskName, taskId,  type, typeWork, actfinish, sum_task, project_name,TASKGUID) values (?,?,?,?,?,?,?,?)";
+        String Query = "INSERT INTO PROJECT (taskName, taskId,  type, typeWork, actfinish, sum_task, project_name,TASKGUID, val) values (?,?,?,?,?,?,?,?,?)";
         try (Connection connection = jdbcConnectionPool.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(Query)) {
             connection.setAutoCommit(false);
@@ -102,6 +104,7 @@ public class DbHandler {
             preparedStatement.setString(6, sumTask);
             preparedStatement.setString(7, projectName);
             preparedStatement.setString(8, projectName);
+            preparedStatement.setDouble(9, val);
 
             preparedStatement.execute();
             connection.commit();
@@ -244,6 +247,9 @@ public class DbHandler {
 
         XSSFWorkbook workbook = new XSSFWorkbook();
         XSSFSheet sheet = workbook.createSheet("Подрядчикам");
+        sheet.createFreezePane(15,3);
+        sheet.groupColumn(0,5);
+        sheet.setRowGroupCollapsed(5, true);
         HashMap<Integer, String> listBuilders = new HashMap<>();
         HashMap<Integer, String> listWork = new HashMap<>();
         String arrayBuilders = "select  ROW_NUMBER ( )   \n" +
@@ -325,7 +331,7 @@ public class DbHandler {
                     "case \n" +
                     "when type = 'fact' then monday else start end start ,\n" +
                     "case \n" +
-                    "when type = 'fact' then monday else start end finish, materialLabel" +
+                    "when type = 'fact' then monday else finish end finish, materialLabel" +
                     "        FROM PROJECT   \n" +
                     "          where length(actfinish) =4 and ((sum_task='true') or( BUILDER =? ))       \n" +
                     "         group by taskid, taskname, resoursename, builder,typework , type , monday, start,   \n" +
@@ -411,8 +417,7 @@ public class DbHandler {
                     Cell fact = row1.createCell(14);
                     fact.setCellValue("Факт");
 
-                    Cell dates = row1.createCell(8);
-                    dates.setCellValue("01.01.2020");
+
 
                     row0Сell0.setCellValue((String) "Оставить");
                     row0Сell1.setCellValue((String) "Подрядчик");
@@ -456,7 +461,7 @@ public class DbHandler {
                     row0Сell0.setCellStyle(cellStyleGreen);
                     row0Сell1.setCellStyle(cellStyleGreen);
                     row0Сell2.setCellStyle(cellStyleGreen);
-                    row0Сell2.setCellStyle(cellStyleGreen);
+                    row0Сell3.setCellStyle(cellStyleGreen);
                     row0Сell4.setCellStyle(cellStyleGreen);
                     row0Сell5.setCellStyle(cellStyleGreen);
                     row0Сell6.setCellStyle(cellStyleGreen);
@@ -473,7 +478,9 @@ public class DbHandler {
 
                         Calendar c = Calendar.getInstance();
                         Calendar e = Calendar.getInstance();
+                        Calendar p = Calendar.getInstance();
                         SimpleDateFormat df = new SimpleDateFormat("dd.MM.yyyy");
+
                         c.setTime(hatDates);
                         c.add(Calendar.DATE, a * 7);
                         Cell c_start = row0.createCell(15 + a);
@@ -488,6 +495,14 @@ public class DbHandler {
                         c_plus.setCellStyle(cellStyleBlack);
                         c_end.setCellStyle(cellStyle);
                         c_start.setCellStyle(cellStyle);
+                        Cell dates = row1.createCell(8);
+                        String string = "01.01.2020";
+                        SimpleDateFormat df1 = new SimpleDateFormat("dd.MM.yyyy");
+                        p.setTime(df1.parse(string));
+
+
+                        dates.setCellValue(p.getTime());
+                        dates.setCellStyle(cellStyle);
 
                     }
                     for (int a = 0; a < 15; a++) {
@@ -498,6 +513,8 @@ public class DbHandler {
 
                 }
 
+            } catch (ParseException e) {
+                throw new RuntimeException(e);
             }
 
             try (Connection connection = jdbcConnectionPool.getConnection();
@@ -516,6 +533,7 @@ public class DbHandler {
 
                 CellStyle cellStyleHat = workbook.createCellStyle();
                 CellStyle cellStyleWhiteString = workbook.createCellStyle();
+
 
                 cellStyleHat.setFillForegroundColor(IndexedColors.BRIGHT_GREEN.index);
                 cellStyleHat.setFillPattern(FillPatternType.SOLID_FOREGROUND);
@@ -595,13 +613,15 @@ public class DbHandler {
                     Cell c_taskName = row.createCell(6);
                     Cell c_sumPlan = row.createCell(7);
                     Cell c_planDate = row.createCell(8);
+
                     Cell c_sumFact = rowPr.createCell(9);
                     Cell c_balance = row.createCell(10);
                     Cell c_startBaseline = row.createCell(11);
                     Cell c_finishBaseline = row.createCell(12);
                     Cell c_type = row.createCell(14);
                     Cell c_materialLabel = row.createCell(13);
-                    Cell c_val = row.createCell(15 + week);
+
+                        Cell c_val = row.createCell(15 + week);
 
                     for (int a=1; a <14; a++) {
                         try {
@@ -618,9 +638,13 @@ public class DbHandler {
                     c_taskId.setCellValue((int) taskId);
                     c_taskName.setCellValue((String) taskName);
                     c_materialLabel.setCellValue(materialLabel);
-                    if (val != 0) {
+                    if (val != 0 && sumTask ==null ) {
                         c_val.setCellValue((double) val);
                     }
+                    if (sumTask !=null ) {
+                        c_sumFact.setCellValue((double) val +" %");
+                    }
+
                     c_type.setCellValue((String) type);
 
                     c_mark.setCellValue(mark);
@@ -674,6 +698,16 @@ public class DbHandler {
                     }
 
                 }
+
+                CellStyle cellStyleBlack = workbook.createCellStyle();
+                cellStyleBlack.setFillForegroundColor(IndexedColors.BLACK.index);
+                cellStyleBlack.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+                cellStyleBlack.setVerticalAlignment(VerticalAlignment.CENTER);
+
+
+                Row row2 = sheet.getRow(2);
+                 Cell cell = row2.getCell(9);
+                 cell.setCellStyle(cellStyleBlack);
                 for (int p = 14; p < 120; p++) {
 
                     sheet.autoSizeColumn(p);
