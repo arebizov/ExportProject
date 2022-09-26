@@ -37,7 +37,9 @@ public class ProjectMS {
         System.out.println("1. В нулевой задачи должно быть проставлено имя проекта из текстового справочника код 30");
         System.out.println("2. В суммарных задачах Группа работ из кодировки справочника 2");
         System.out.println("3. В задачах (не суммарных) проставить подрядчика из кодировки справочника 1");
-
+        System.out.println("4. Для отчёта по физ. объёмам в задачах в корпоративных полях проставить:");
+        System.out.println("   - Тип СМР");
+        System.out.println("   - Объект реализации");
 
         {
             try {
@@ -46,12 +48,12 @@ public class ProjectMS {
 
 
 //                    String filename = "d:\\onest.mpp"; // эту комментировать
-                    String filename = "d:\\example2.mpp"; // эту комментировать
-//
-//                    Scanner sc = new Scanner(System.in);
-//                    String path = sc.nextLine();
-//                    String filename1 = path.replace(".mpp", "");
-//                    String filename = filename1 + ".mpp";
+//                    String filename = "d:\\example2.mpp"; // эту комментировать
+
+                    Scanner sc = new Scanner(System.in);
+                    String path = sc.nextLine();
+                    String filename1 = path.replace(".mpp", "");
+                    String filename = filename1 + ".mpp";
 
 
                     outFiles = filename.replace("mpp", "xlsx");

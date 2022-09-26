@@ -11,8 +11,12 @@ import ru.projectMS.filesProject.ProjectMS;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.sql.*;
 import java.text.DateFormat;
+import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -53,7 +57,7 @@ public class DbHandler {
     ;
 
 
-    public void insertDB(String resourseName, String taskName, int taskId, java.util.Date dateAssig, double val, String type, String taskGUID, java.util.Date monday, String resourcetype, String builder, String typeWork, String actFinish, String start, String finish, String project_name, String materiallabel) throws SQLException {
+    public void insertDB(String resourseName, String taskName, int taskId, java.util.Date dateAssig, float val, String type, String taskGUID, java.util.Date monday, String resourcetype, String builder, String typeWork, String actFinish, String start, String finish, String project_name, String materiallabel) throws SQLException {
 
 
         JdbcConnectionPool jdbcConnectionPool = getConnectionPool();
@@ -105,6 +109,7 @@ public class DbHandler {
             preparedStatement.setString(7, projectName);
             preparedStatement.setString(8, projectName);
             preparedStatement.setDouble(9, val);
+
 
             preparedStatement.execute();
             connection.commit();
@@ -447,6 +452,7 @@ public class DbHandler {
 
 
 
+
                     cellStyleBlack.setFillPattern(FillPatternType.SOLID_FOREGROUND);
                     cellStyle.setDataFormat(
                             createHelper.createDataFormat().getFormat("dd/mm/yyyy"));
@@ -638,12 +644,17 @@ public class DbHandler {
                     c_taskId.setCellValue((int) taskId);
                     c_taskName.setCellValue((String) taskName);
                     c_materialLabel.setCellValue(materialLabel);
+
+                    MathContext context = new MathContext(4, RoundingMode.HALF_UP);
+                    BigDecimal roundVal = new BigDecimal(val, context);
+
+
                     if (val != 0 && sumTask ==null ) {
-                        c_val.setCellValue((double) val);
+                        c_val.setCellValue(roundVal.doubleValue());
                     }
-                    if (sumTask !=null ) {
-                        c_sumFact.setCellValue((double) val +" %");
-                    }
+//                    if (sumTask !=null ) {
+//                        c_sumFact.setCellValue((double) val +" %");
+//                    }
 
                     c_type.setCellValue((String) type);
 
@@ -762,7 +773,7 @@ public class DbHandler {
 
         try {
 
-            String Query1 = "SELECT start,round(val/period,2) perDay, types,taskname,guid,resourcename, period, taskid, resourcetype,  builder, typeWork, actFinish, start, finish, materiallabel FROM ASSING  ";
+            String Query1 = "SELECT start,val/period perDay, types,taskname,guid,resourcename, period, taskid, resourcetype,  builder, typeWork, actFinish, start, finish, materiallabel FROM ASSING  ";
 
 
             try (Connection connection = jdbcConnectionPool.getConnection();
@@ -784,7 +795,7 @@ public class DbHandler {
                         int monday = c2.get(Calendar.DAY_OF_WEEK);
                         c2.add(Calendar.DAY_OF_MONTH, -monday + 2);
 
-                        double perDay = rs.getDouble("perDay");
+                        float perDay = rs.getFloat("perDay");
                         String types = rs.getString("types");
                         String taskname = rs.getString("taskname");
                         String guid = rs.getString("guid");
@@ -833,7 +844,7 @@ public class DbHandler {
         try {
             connection.setAutoCommit(false);
             stmt = connection.createStatement();
-            stmt.execute("CREATE TABLE PROJECT ( RESOURSENAME varchar(255), taskId int, taskName varchar(255) ,dateAssig date, val double, type varchar(50), taskguid varchar(50), monday date, resourcetype varchar(50),  builder varchar(250), typeWork varchar(250), actFinish varchar(50), sum_task varchar(10), start varchar(50), finish varchar(50), project_name varchar(255), materiallabel varchar(255)  )");
+            stmt.execute("CREATE TABLE PROJECT ( RESOURSENAME varchar(255), taskId int, taskName varchar(255) ,dateAssig date, val float, type varchar(50), taskguid varchar(50), monday date, resourcetype varchar(50),  builder varchar(250), typeWork varchar(250), actFinish varchar(50), sum_task varchar(10), start varchar(50), finish varchar(50), project_name varchar(255), materiallabel varchar(255)  )");
             connection.commit();
         } catch (BatchUpdateException e) {
             System.out.println("Exception Message " + e.getLocalizedMessage());
