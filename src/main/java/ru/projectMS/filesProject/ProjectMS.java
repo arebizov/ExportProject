@@ -186,8 +186,8 @@ public class ProjectMS {
 
     private static void listTasks(ProjectFile file) throws SQLException {
         DbHandler dbHandler = new DbHandler();
-        String typeFact = "fact";
-        String typePlan = "plan";
+        String typeFact = "факт";
+        String typePlan = "план";
         String finish = "null";
         String sumTask = "true";
         System.out.println("Reading tasks ");
@@ -251,7 +251,7 @@ public class ProjectMS {
 
                     String v = String.valueOf(assignment.getTimephasedActualWork().get(i).getTotalAmount());
                     Double value = Double.parseDouble(v.replace("h", ""));
-                    String types = "fact";
+                    String types = "факт";
                     String taskName = String.valueOf(assignment.getTask().getName());
                     String GUID = ProjectMS.getProjectName();
                     String builder = String.valueOf(assignment.getTask().getOutlineCode(1));
@@ -294,8 +294,8 @@ public class ProjectMS {
                 String v = String.valueOf(assignment.getWork());
                 double value = Double.parseDouble(v.replace("h", ""));
                 double valueNull = 0;
-                String types = "plan";
-                String typesFact = "fact";
+                String types = "план";
+                String typesFact = "факт";
                 String taskName = String.valueOf(assignment.getTask().getName());
                 String GUID = ProjectMS.getProjectName();
                 String resourceName = String.valueOf(assignment.getResource().getName());

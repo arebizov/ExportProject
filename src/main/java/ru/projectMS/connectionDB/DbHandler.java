@@ -334,13 +334,13 @@ public class DbHandler {
                     "                            taskid, taskname, resoursename, builder,typework,   sum(val) val ,  \n" +
                     "         type,  monday,  \n" +
                     "case \n" +
-                    "when type = 'fact' then monday else start end start ,\n" +
+                    "when type = 'факт' then monday else start end start ,\n" +
                     "case \n" +
-                    "when type = 'fact' then monday else finish end finish, materialLabel" +
+                    "when type = 'факт' then monday else finish end finish, materialLabel" +
                     "        FROM PROJECT   \n" +
                     "          where length(actfinish) =4 and ((sum_task='true') or( BUILDER =? ))       \n" +
                     "         group by taskid, taskname, resoursename, builder,typework , type , monday, start,   \n" +
-                    "        finish,materialLabel ) order by rnk asc, type desc) \n" +
+                    "        finish,materialLabel ) order by rnk asc, type asc) \n" +
                     "\n" +
                     "\n";
 
@@ -507,6 +507,17 @@ public class DbHandler {
                         p.setTime(df1.parse(string));
 
 
+                        Cell cell1 = row1.createCell(1);
+                        Cell cell2 = row1.createCell(2);
+                        Cell cell3 = row1.createCell(3);
+                        Cell cell4 = row1.createCell(4);
+
+
+
+
+
+
+
                         dates.setCellValue(p.getTime());
                         dates.setCellStyle(cellStyle);
 
@@ -521,6 +532,14 @@ public class DbHandler {
 
             } catch (ParseException e) {
                 throw new RuntimeException(e);
+            }
+
+            for (int h = 0; h<8;h++) {
+                sheet.addMergedRegion(new CellRangeAddress(0, 1, h, h));
+            }
+
+            for (int h = 9; h<=14;h++) {
+                sheet.addMergedRegion(new CellRangeAddress(0, 1, h, h));
             }
 
             try (Connection connection = jdbcConnectionPool.getConnection();
@@ -561,7 +580,7 @@ public class DbHandler {
                 while (rs.next()) {
                     int j = rs.getInt("rnk");
                     String type = rs.getString("type");
-                    if (type.equals("plan")) {
+                    if (type.equals("план")) {
                         Row rowf = sheet.createRow(j * 2 - 1 + 3);
                         Row rowp = sheet.createRow(j * 2 - 1 + 2);
 
@@ -598,10 +617,10 @@ public class DbHandler {
 
                     int k = 0;
 
-                    if (type.equals("plan")) {
+                    if (type.equals("план")) {
                         k = rnk * 2 - 1 + 2;
                     }
-                    if (type.equals("fact")) {
+                    if (type.equals("факт")) {
                         k = rnk * 2 + 2;
                     }
 
@@ -671,23 +690,23 @@ public class DbHandler {
 
                     }
 
-                    if (type.equals("plan") ){
+                    if (type.equals("план") ){
                         c_startBaseline.setCellValue(startBaseline);
                         c_finishBaseline.setCellValue(finishBaseline);
                     }
 
                     c_sumTask.setCellValue((String) sumTask);
 
-                    if (type.equals("plan") && sumTask == null) {
+                    if (type.equals("план") && sumTask == null) {
                         c_sumPlan.setCellFormula("sum(O" + numberStr + ":ppp" + numberStr + ")");
 
                     }
-                    if (type.equals("fact") && sumTask == null) {
+                    if (type.equals("факт") && sumTask == null) {
                         c_sumFact.setCellFormula("sum(O" + numberStr + ":ppp" + numberStr + ")");
                         c_val.setCellStyle(cellStyleRedFont);
                     }
 
-                    if (type.equals("fact")) {
+                    if (type.equals("факт")) {
                         c_type.setCellStyle(cellStyleBlue);
 
                     }
