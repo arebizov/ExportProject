@@ -505,18 +505,10 @@ public class DbHandler {
                         String string = "01.01.2020";
                         SimpleDateFormat df1 = new SimpleDateFormat("dd.MM.yyyy");
                         p.setTime(df1.parse(string));
-
-
                         Cell cell1 = row1.createCell(1);
                         Cell cell2 = row1.createCell(2);
                         Cell cell3 = row1.createCell(3);
                         Cell cell4 = row1.createCell(4);
-
-
-
-
-
-
 
                         dates.setCellValue(p.getTime());
                         dates.setCellStyle(cellStyle);
@@ -570,10 +562,9 @@ public class DbHandler {
                 cellStyleWhiteString.setVerticalAlignment(VerticalAlignment.CENTER);
                 cellStyleWhiteString.setWrapText(true);
 
-                CellStyle cellStyleRedFont = workbook.createCellStyle();
-                Font redFont = workbook.createFont();
-                redFont.setColor(HSSFColor.HSSFColorPredefined.RED.getIndex());
-                cellStyleRedFont.setFont(redFont);
+
+
+
 
 
 
@@ -589,6 +580,21 @@ public class DbHandler {
                 }
 
                 ResultSet rs2 = preparedStatement.executeQuery();
+
+
+
+
+                CellStyle cellStyleRound = workbook.createCellStyle();
+                DataFormat format = workbook.createDataFormat();
+                String styleFormat ="0.00";
+                cellStyleRound.setDataFormat(format.getFormat(styleFormat));
+
+                CellStyle cellStyleRedFont = workbook.createCellStyle();
+                Font redFont = workbook.createFont();
+                redFont.setColor(HSSFColor.HSSFColorPredefined.RED.getIndex());
+                cellStyleRedFont.setFont(redFont);
+                cellStyleRedFont.setDataFormat(format.getFormat(styleFormat));
+
 
                 while (rs2.next()) {
                     String mark = "+";
@@ -610,10 +616,6 @@ public class DbHandler {
                     }
 //                    System.out.println(mindate + " "+ monday+ " "+ week);
                     String materialLabel = rs2.getString("materialLabel");
-
-
-
-
 
                     int k = 0;
 
@@ -646,7 +648,8 @@ public class DbHandler {
                     Cell c_type = row.createCell(14);
                     Cell c_materialLabel = row.createCell(13);
 
-                        Cell c_val = row.createCell(15 + week);
+                    Cell c_val = row.createCell(15 + week);
+                    c_val.setCellStyle(cellStyleRound);
 
                     for (int a=1; a <14; a++) {
                         try {
@@ -664,16 +667,15 @@ public class DbHandler {
                     c_taskName.setCellValue((String) taskName);
                     c_materialLabel.setCellValue(materialLabel);
 
-                    MathContext context = new MathContext(4, RoundingMode.HALF_UP);
-                    BigDecimal roundVal = new BigDecimal(val, context);
+
 
 
                     if (val != 0 && sumTask ==null ) {
-                        c_val.setCellValue(roundVal.doubleValue());
+                            c_val.setCellValue(val);
+                            c_val.setCellStyle(cellStyleRound);
+
                     }
-//                    if (sumTask !=null ) {
-//                        c_sumFact.setCellValue((double) val +" %");
-//                    }
+
 
                     c_type.setCellValue((String) type);
 
