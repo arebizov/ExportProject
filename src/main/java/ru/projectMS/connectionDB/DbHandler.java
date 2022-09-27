@@ -757,6 +757,7 @@ public class DbHandler {
                 sheet.setColumnWidth(10, 3000);
                 sheet.setColumnWidth(11, 3000);
                 sheet.setColumnWidth(12, 3000);
+                sheet.setAutoFilter(CellRangeAddress.valueOf("A3:PPP3"));
 
             }
 
