@@ -611,7 +611,7 @@ public class DbHandler {
                     String finishBaseline = rs2.getString("finish");
                     Date monday = rs2.getDate("monday");
                     int week = 0;
-                    if (monday!=null){
+                    if (monday!=null ){
                         week = (int)(((monday.getTime()-mindate.getTime()) / (1000 * 60 * 60 * 24))+1)/7;
                     }
 //                    System.out.println(mindate + " "+ monday+ " "+ week);
@@ -688,6 +688,8 @@ public class DbHandler {
                         if (sumTask == null) {
                             c_planDate.setCellFormula("SUMIF($O$3:$PPP$3,\"+\",O" + j + ":PPP" + j + ")");
                             c_balance.setCellFormula("H" + j + "-" + "J" + j);
+                            c_planDate.setCellStyle(cellStyleRound);
+                            c_balance.setCellStyle(cellStyleRound);
                         }
 
                     }
@@ -701,10 +703,12 @@ public class DbHandler {
 
                     if (type.equals("план") && sumTask == null) {
                         c_sumPlan.setCellFormula("sum(O" + numberStr + ":ppp" + numberStr + ")");
+                        c_sumPlan.setCellStyle(cellStyleRound);
 
                     }
                     if (type.equals("факт") && sumTask == null) {
                         c_sumFact.setCellFormula("sum(O" + numberStr + ":ppp" + numberStr + ")");
+                        c_sumFact.setCellStyle(cellStyleRound);
                         c_val.setCellStyle(cellStyleRedFont);
                     }
 

@@ -1,15 +1,13 @@
 package ru.projectMS.filesProject;
 
-import net.sf.mpxj.ProjectFile;
-import net.sf.mpxj.ResourceAssignment;
-import net.sf.mpxj.Task;
+import net.sf.mpxj.*;
+import net.sf.mpxj.common.DefaultTimephasedWorkContainer;
 import net.sf.mpxj.reader.UniversalProjectReader;
 import ru.projectMS.connectionDB.DbHandler;
 
+import java.lang.reflect.Field;
 import java.sql.SQLException;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Scanner;
+import java.util.*;
 
 public class ProjectMS {
 
@@ -47,13 +45,13 @@ public class ProjectMS {
                     System.out.println("Веедите путь до файла MS Project");
 
 
-//                    String filename = "d:\\onest.mpp"; // эту комментировать
+                    String filename = "d:\\vr5.mpp"; // эту комментировать
 //                    String filename = "d:\\example2.mpp"; // эту комментировать
-
-                    Scanner sc = new Scanner(System.in);
-                    String path = sc.nextLine();
-                    String filename1 = path.replace(".mpp", "");
-                    String filename = filename1 + ".mpp";
+//
+//                    Scanner sc = new Scanner(System.in);
+//                    String path = sc.nextLine();
+//                    String filename1 = path.replace(".mpp", "");
+//                    String filename = filename1 + ".mpp";
 
 
                     outFiles = filename.replace("mpp", "xlsx");
@@ -110,7 +108,8 @@ public class ProjectMS {
 
     }
 
-    private static void listAssignments(ProjectFile file) throws SQLException {
+
+    private static void listAssignments(ProjectFile file) throws SQLException, NoSuchFieldException, IllegalAccessException {
         Task task;
         System.out.println();
 //        System.out.println(file);
@@ -120,10 +119,9 @@ public class ProjectMS {
         for (ResourceAssignment assignment : file.getResourceAssignments()) {
             task = assignment.getTask();
             Z++;
-            if (Z%10==0){
+            if (Z % 10 == 0) {
                 System.out.print("\r");
-            }
-            else {
+            } else {
                 System.out.print(".");
             }
             if (task != null) {
@@ -175,14 +173,13 @@ public class ProjectMS {
         for (Task task : file.getTasks()) {
             if (task.getID() == 0) {
                 projectName = String.valueOf(task.getText(30));
-                ;
             }
 
         }
 
     }
 
-    public static int Z =0;
+    public static int Z = 0;
 
     private static void listTasks(ProjectFile file) throws SQLException {
         DbHandler dbHandler = new DbHandler();
@@ -195,10 +192,7 @@ public class ProjectMS {
 
         for (Task task : file.getTasks()) {
             Z++;
-//            System.out.print(Z);
-//            System.out.println(task.getOutlineCode(2));
 
-//            System.out.println((double)task.getPercentageComplete());
             if (Z % 10 == 0) {
                 System.out.print("\r");
             } else {
@@ -206,11 +200,10 @@ public class ProjectMS {
             }
 
 
-
             if (task.getSummary() == true && task.getID() != 0 && task.getOutlineCode(2) != null) {
 //                System.out.println(task.getOutlineCode(2));
-                dbHandler.insertSumTask(task.getName(), task.getID(), typeFact, task.getOutlineCode(2), finish, sumTask, projectName, (double)task.getPercentageComplete() );
-                dbHandler.insertSumTask(task.getName(), task.getID(), typePlan, task.getOutlineCode(2), finish, sumTask, projectName, (double)task.getPercentageComplete());
+                dbHandler.insertSumTask(task.getName(), task.getID(), typeFact, task.getOutlineCode(2), finish, sumTask, projectName, (double) task.getPercentageComplete());
+                dbHandler.insertSumTask(task.getName(), task.getID(), typePlan, task.getOutlineCode(2), finish, sumTask, projectName, (double) task.getPercentageComplete());
             }
 
 
@@ -219,59 +212,75 @@ public class ProjectMS {
 
     }
 
-    private static void listTimephasedWork(ResourceAssignment assignment) throws SQLException {
+
+
+    private static void listTimephasedWork(ResourceAssignment assignment) throws SQLException, NoSuchFieldException, IllegalAccessException {
 
         DbHandler dbHandler = new DbHandler();
         Task task = assignment.getTask();
         int days = (int) ((task.getFinish().getTime() - task.getStart().getTime()) / (1000 * 60 * 60 * 24)) + 1;
         if (days > 1) {
 
+//            if (!assignment.getTimephasedActualWork().isEmpty()) {
 
-            if (!assignment.getTimephasedActualWork().isEmpty()) {
 
+                Field field = assignment.getClass().getDeclaredField("m_timephasedActualWork");
+                field.setAccessible(true);
+                DefaultTimephasedWorkContainer timephasedActualWork = (DefaultTimephasedWorkContainer) field.get(assignment);
 
+                Field m_data = timephasedActualWork.getClass().getDeclaredField("m_data");
+                m_data.setAccessible(true);
+                List timePhased = (List) m_data.get(timephasedActualWork);
+                String types = "факт";
+                String taskName = String.valueOf(assignment.getTask().getName());
+                String GUID = ProjectMS.getProjectName();
+                String builder = String.valueOf(assignment.getTask().getOutlineCode(1));
+                String typeWork = String.valueOf(assignment.getTask().getOutlineCode(2));
+                String actFinish = String.valueOf(assignment.getTask().getActualFinish());
+                String materialLabel = "нет";
                 String resourceName;
                 String resourceType;
-                for (int i = 0; i < assignment.getTimephasedActualWork().size(); i++) {
+                if (assignment.getResource() != null) {
+                    resourceName = String.valueOf(assignment.getResource().getName());
+                    resourceType = String.valueOf(assignment.getResource().getType());
+                    materialLabel = String.valueOf(assignment.getResource().getMaterialLabel());
+                } else {
+                    resourceName = "";
+                    resourceType = "";
+                }
+                int taskid = assignment.getTask().getID();
 
-                    Date start = assignment.getTimephasedActualWork().get(i).getStart();
-                    Date finish = assignment.getTimephasedActualWork().get(i).getFinish();
+                Calendar c = Calendar.getInstance();
+                Calendar c2 = Calendar.getInstance();
+
+                for (int i = 0; i < timePhased.size(); i++) {
+                    Date start = ((TimephasedWork) timePhased.get(i)).getStart();
+                    Date finish = ((TimephasedWork) timePhased.get(i)).getFinish();
                     long period = (finish.getTime() - start.getTime()) / (1000 * 60 * 60 * 24) + 1;
+                    String val = String.valueOf(((TimephasedWork) timePhased.get(i)).getTotalAmount());
+                    int a = val.indexOf("m");
 
-                    Calendar c = Calendar.getInstance();
+                    Double value;
+                    if (a>=0) {
+                        value = Double.parseDouble(val.replace("m", "")) / 60 ;
+                    } else
+                        value = Double.parseDouble(val.replace("h", ""))  ;
+
                     c.setTime(start);
                     java.util.Date utilDate = c.getTime();
                     java.sql.Date startDate = new java.sql.Date(utilDate.getTime());
 
-                    Calendar c2 = Calendar.getInstance();
+
                     c2.setTime(finish);
                     java.util.Date utilDate2 = c2.getTime();
                     java.sql.Date finishDate = new java.sql.Date(utilDate2.getTime());
 
 
-                    String v = String.valueOf(assignment.getTimephasedActualWork().get(i).getTotalAmount());
-                    Double value = Double.parseDouble(v.replace("h", ""));
-                    String types = "факт";
-                    String taskName = String.valueOf(assignment.getTask().getName());
-                    String GUID = ProjectMS.getProjectName();
-                    String builder = String.valueOf(assignment.getTask().getOutlineCode(1));
-                    String typeWork = String.valueOf(assignment.getTask().getOutlineCode(2));
-                    String actFinish = String.valueOf(assignment.getTask().getActualFinish());
-                    String materialLabel = "нет";
-
-                    if (assignment.getResource() != null) {
-                        resourceName = String.valueOf(assignment.getResource().getName());
-                        resourceType = String.valueOf(assignment.getResource().getType());
-                        materialLabel = String.valueOf(assignment.getResource().getMaterialLabel());
-                    } else {
-                        resourceName = "";
-                        resourceType = "";
-                    }
-                    int taskid = assignment.getTask().getID();
-
+//                    System.out.println   (startDate+" "+finishDate+" "+value +" "+types+" "+GUID+" "+ builder+ " "+ typeWork + " "+ actFinish+ " " +materialLabel + " "+ resourceName + " "+ resourceType);
                     dbHandler.insertAccum(startDate, finishDate, value, types, taskName, GUID, resourceName, period, taskid, resourceType, builder, typeWork, actFinish, materialLabel);
 
                 }
+
 
             }
 
@@ -313,15 +322,11 @@ public class ProjectMS {
                     materialLabel = "нет";
                 }
 
-
-
-//                System.out.println(resourceType);
-//                System.out.println(unit);
-                dbHandler.insertAccum(startDate, finishDate, value, types, taskName, GUID, resourceName, period, taskid, resourceType, builder, typeWork, actFinish , materialLabel);
+                dbHandler.insertAccum(startDate, finishDate, value, types, taskName, GUID, resourceName, period, taskid, resourceType, builder, typeWork, actFinish, materialLabel);
                 dbHandler.insertAccum(startDate, finishDate, valueNull, typesFact, taskName, GUID, resourceName, period, taskid, resourceType, builder, typeWork, actFinish, materialLabel);
 
             }
         }
     }
 
-}
+
