@@ -5,7 +5,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-import static ru.projectMS.connectionDB.ConnectionsDbPostGres.getConnection;
+import static ru.projectMS.connectionDB.ConnectionsDbMSSQL.getConnection;
 
 public class ProjectList {
 
@@ -36,7 +36,7 @@ public class ProjectList {
                 String Query = "select distinct \n" +
                         "rank() over( partition by project_name order by modified_date) rnk,\n" +
                         " project_name, modified_date\n" +
-                        "from public.project";
+                        "from project";
 
                 ArrayList<Projects> projectsArrayList = new ArrayList<>();
                 try (Connection connection = getConnection();

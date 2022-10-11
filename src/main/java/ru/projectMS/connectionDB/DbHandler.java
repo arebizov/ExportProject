@@ -5,7 +5,6 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.h2.jdbcx.JdbcConnectionPool;
 import ru.projectMS.filesProject.ProjectMS;
 
 import java.io.File;
@@ -22,7 +21,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Scanner;
 
-import static ru.projectMS.connectionDB.ConnectionsDbPostGres.getConnection;
+import static ru.projectMS.connectionDB.ConnectionsDbMSSQL.getConnection;
 
 public class DbHandler {
 
