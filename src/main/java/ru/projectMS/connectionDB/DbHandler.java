@@ -8,15 +8,13 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.h2.jdbcx.JdbcConnectionPool;
 import ru.projectMS.filesProject.ProjectMS;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.MathContext;
-import java.math.RoundingMode;
+import java.net.URISyntaxException;
+import java.security.CodeSource;
 import java.sql.*;
-import java.text.DateFormat;
-import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -24,145 +22,27 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Scanner;
 
-import static ru.projectMS.connectionDB.ConnectionsDbH2.getConnectionPool;
+import static ru.projectMS.connectionDB.ConnectionsDbPostGres.getConnection;
 
 public class DbHandler {
-    private String files;
-    private String filename;
+
     public String builders;
     public String Query;
-    public static   Date mindate;
+    public static Date mindate;
 
+    public static String name;
 
-    public void initialize() throws SQLException {
-
-
-        JdbcConnectionPool jdbcConnectionPool = getConnectionPool();
-        Statement stmt;
-        try {
-            Connection connection = jdbcConnectionPool.getConnection();
-            stmt = connection.createStatement();
-
-            if (stmt != null) {
-                System.out.println("You connected to DB");
-            }
-        } catch (Exception e) {
-            System.out.println("Connection Failed :");
-            e.printStackTrace();
-        } finally {
-            jdbcConnectionPool.dispose();
-        }
-    }
-
-    ;
-
-
-    public void insertDB(String resourseName, String taskName, int taskId, java.util.Date dateAssig, float val, String type, String taskGUID, java.util.Date monday, String resourcetype, String builder, String typeWork, String actFinish, String start, String finish, String project_name, String materiallabel) throws SQLException {
-
-
-        JdbcConnectionPool jdbcConnectionPool = getConnectionPool();
-        String Query = "INSERT INTO PROJECT (RESOURSENAME, taskName, taskId, dateAssig, val, type, taskguid, monday, resourceType, builder, typeWork, actFinish, start,finish , project_name, materiallabel) values (?,?,?,?,?,?,?,?, ?,?,?, ?, ? , ?, ?, ?)";
-        try (Connection connection = jdbcConnectionPool.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(Query)) {
-            connection.setAutoCommit(false);
-            preparedStatement.setString(1, resourseName);
-            preparedStatement.setString(2, taskName);
-            preparedStatement.setInt(3, taskId);
-            preparedStatement.setDate(4, (Date) dateAssig);
-            preparedStatement.setDouble(5, val);
-            preparedStatement.setString(6, type);
-            preparedStatement.setString(7, taskGUID);
-            preparedStatement.setDate(8, (Date) monday);
-            preparedStatement.setString(9, resourcetype);
-            preparedStatement.setString(10, builder);
-            preparedStatement.setString(11, typeWork);
-            preparedStatement.setString(12, actFinish);
-            preparedStatement.setString(13, start);
-            preparedStatement.setString(14, finish);
-            preparedStatement.setString(15, project_name);
-            preparedStatement.setString(16, materiallabel);
-            preparedStatement.execute();
-            connection.commit();
-        } catch (BatchUpdateException e) {
-            System.out.println("Exception Message " + e.getLocalizedMessage());
-        } finally {
-            jdbcConnectionPool.dispose();
-        }
-    }
-
-
-    public void insertSumTask(String taskName, int taskId, String type, String typeWork, String finish, String sumTask, String projectName, double val) throws SQLException {
-
-
-        JdbcConnectionPool jdbcConnectionPool = getConnectionPool();
-        String Query = "INSERT INTO PROJECT (taskName, taskId,  type, typeWork, actfinish, sum_task, project_name,TASKGUID, val) values (?,?,?,?,?,?,?,?,?)";
-        try (Connection connection = jdbcConnectionPool.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(Query)) {
-            connection.setAutoCommit(false);
-
-            preparedStatement.setString(1, taskName);
-            preparedStatement.setInt(2, taskId);
-            preparedStatement.setString(3, type);
-            preparedStatement.setString(4, typeWork);
-            preparedStatement.setString(5, finish);
-            preparedStatement.setString(6, sumTask);
-            preparedStatement.setString(7, projectName);
-            preparedStatement.setString(8, projectName);
-            preparedStatement.setDouble(9, val);
-
-
-            preparedStatement.execute();
-            connection.commit();
-        } catch (BatchUpdateException e) {
-            System.out.println("Exception Message " + e.getLocalizedMessage());
-        } finally {
-            jdbcConnectionPool.dispose();
-        }
-    }
-
-
-    public void insertAccum(java.util.Date start, java.util.Date finish, double value, String types, String taskName, String GUID, String resourceName, long period, int taskid, String resourceType, String builder, String typeWork, String actFinish, String materialLabel) throws SQLException {
-        JdbcConnectionPool jdbcConnectionPool = getConnectionPool();
-        String Query = "INSERT INTO assing (start, finish,  val, types,  taskName, GUID,  resourceName, period, taskid, resourceType, builder, typeWork,actFinish, materialLabel) values (?,?,?,?,?,?,?,?, ?,?,?,?,?,?)";
-        try (Connection connection = jdbcConnectionPool.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(Query)) {
-            connection.setAutoCommit(false);
-            preparedStatement.setDate(1, (Date) start);
-            preparedStatement.setDate(2, (Date) finish);
-            preparedStatement.setDouble(3, (double) value);
-            preparedStatement.setString(4, types);
-            preparedStatement.setString(5, taskName);
-            preparedStatement.setString(6, GUID);
-            preparedStatement.setString(7, resourceName);
-            preparedStatement.setLong(8, period);
-            preparedStatement.setInt(9, taskid);
-            preparedStatement.setString(10, resourceType);
-            preparedStatement.setString(11, builder);
-            preparedStatement.setString(12, typeWork);
-            preparedStatement.setString(13, actFinish);
-            preparedStatement.setString(14, materialLabel);
-
-            preparedStatement.execute();
-            connection.commit();
-        } catch (BatchUpdateException e) {
-            System.out.println("Exception Message " + e.getLocalizedMessage());
-        } finally {
-            jdbcConnectionPool.dispose();
-        }
-    }
-
-
-    public void select() throws SQLException {
-        JdbcConnectionPool jdbcConnectionPool = getConnectionPool();
-
-
+    public void select(Timestamp modifiedDate) throws SQLException {
         XSSFWorkbook workbook = new XSSFWorkbook();
         XSSFSheet sheet = workbook.createSheet("Выгрузка");
         int i = 0;
         try {
-            String Query = "SELECT taskid,taskguid, taskname,  resoursename, monday, type, sum(val) val, resourceType  FROM PROJECT group by taskguid, resoursename, taskname, monday, type, taskid, resourceType";
-            try (Connection connection = jdbcConnectionPool.getConnection();
+            String Query = "\n" +
+                    "SELECT task_id,task_guid, task_name,  resource_name , monday, type, sum(val) val, resource_type   FROM PROJECT where modified_Date = ? group by task_guid, resource_name, task_name, monday, type, task_id, resource_type ";
+            try (Connection connection = getConnection();
                  PreparedStatement preparedStatement = connection.prepareStatement(Query)) {
+
+                preparedStatement.setTimestamp(1, modifiedDate);
                 ResultSet rs = preparedStatement.executeQuery();
 
                 Row row0 = sheet.createRow(0);
@@ -176,28 +56,28 @@ public class DbHandler {
                 Cell cell07 = row0.createCell(7);
 
 
-                cell0.setCellValue((String) "taskguid");
-                cell01.setCellValue((String) "taskId");
-                cell02.setCellValue((String) "taskName");
+                cell0.setCellValue((String) "task_guid");
+                cell01.setCellValue((String) "task_Id");
+                cell02.setCellValue((String) "task_Name");
                 cell03.setCellValue((String) "monday");
                 cell04.setCellValue((String) "val");
                 cell05.setCellValue((String) "type");
-                cell06.setCellValue((String) "resoursename");
-                cell07.setCellValue((String) "resourceType");
+                cell06.setCellValue((String) "resource_name");
+                cell07.setCellValue((String) "resource_type");
 
 
                 while (rs.next()) {
                     i = i + 1;
 
-                    String taskguid = rs.getString("taskguid");
-                    int taskId = rs.getInt("taskId");
-                    String taskName = rs.getString("taskName");
+                    String taskguid = rs.getString("task_guid");
+                    int taskId = rs.getInt("task_id");
+                    String taskName = rs.getString("task_name");
                     String monday = rs.getString("monday");
                     double val = rs.getDouble("val");
                     String types = rs.getString("type");
-                    String resoursename = rs.getString("resoursename");
-                    String resourceType = rs.getString("resourceType");
-
+                    String resoursename = rs.getString("resource_name");
+                    String resourceType = rs.getString("resource_type");
+                    name = rs.getString("task_guid");
 
                     Row row = sheet.createRow(i);
                     Cell cell = row.createCell(0);
@@ -217,6 +97,7 @@ public class DbHandler {
                     cell6.setCellValue((String) resoursename);
                     cell7.setCellValue((String) resourceType);
 
+
                 }
             }
 
@@ -224,7 +105,12 @@ public class DbHandler {
                 ProjectMS projectMS = new ProjectMS();
                 System.out.println(projectMS.getFilename());
 
-                String file_name = projectMS.getFilename();
+                CodeSource codeSource = ProjectMS.class.getProtectionDomain().getCodeSource();
+                File jarFile = new File(codeSource.getLocation().toURI().getPath());
+                String jarDir = jarFile.getParentFile().getPath();
+
+                String file_name = jarDir + "\\" + name + ".xlsx";
+                System.out.println("Файл сохранён в директории " + file_name);
 
                 FileOutputStream outputStream = new FileOutputStream(file_name);
                 workbook.write(outputStream);
@@ -233,6 +119,8 @@ public class DbHandler {
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
+            } catch (URISyntaxException e) {
+                throw new RuntimeException(e);
             }
 
             System.out.println("Done");
@@ -241,30 +129,29 @@ public class DbHandler {
         } catch (BatchUpdateException e) {
             System.out.println("Exception Message " + e.getLocalizedMessage());
         } finally {
-            jdbcConnectionPool.dispose();
+            getConnection().close();
         }
     }
 
 
-    public void selectBuilder() throws SQLException {
-        JdbcConnectionPool jdbcConnectionPool = getConnectionPool();
-
+    public void selectBuilder(Timestamp t) throws SQLException {
 
         XSSFWorkbook workbook = new XSSFWorkbook();
         XSSFSheet sheet = workbook.createSheet("Подрядчикам");
-        sheet.createFreezePane(15,3);
-        sheet.groupColumn(0,5);
+        sheet.createFreezePane(15, 3);
+        sheet.groupColumn(0, 5);
         sheet.setRowGroupCollapsed(5, true);
         HashMap<Integer, String> listBuilders = new HashMap<>();
         HashMap<Integer, String> listWork = new HashMap<>();
-        String arrayBuilders = "select  ROW_NUMBER ( )   \n" +
-                "    OVER ( order BY builder  ) id, builder from (\n" +
-                "SELECT distinct builder  FROM PROJECT where builder !='null' )";
+        String arrayBuilders = "select  ROW_NUMBER ( )    \n" +
+                "            OVER ( order BY build.builder  ) id, build.builder from ( \n" +
+                "        SELECT distinct builder  FROM PROJECT where builder !='null' and modified_date = ?) build";
 
 
-        try (Connection connection = jdbcConnectionPool.getConnection();
+        try (Connection connection = getConnection();
 
              PreparedStatement preparedStatement = connection.prepareStatement(arrayBuilders)) {
+            preparedStatement.setTimestamp(1, t);
             ResultSet rs = preparedStatement.executeQuery();
             while (rs.next()) {
                 listBuilders.put(rs.getInt("id"), rs.getString("builder"));
@@ -272,8 +159,6 @@ public class DbHandler {
 
         }
 
-
-        int i = 0;
         try {
 
             int keyBuilder;
@@ -291,20 +176,22 @@ public class DbHandler {
             System.out.println(builders);
 
 
-            String arrayTypeWork = " select 0 id, 'Завершить выбор' typework union all select  ROW_NUMBER ( )   \n" +
-                    "    OVER ( order BY TypeWork  ) id, TypeWork from (\n" +
-                    "SELECT distinct TypeWork  FROM PROJECT where typework not like '%ГРУППА РАБ%'  and builder='" + builders + "')";
+            String arrayTypeWork = " select 0 id, 'Завершить выбор' type_work union all select  ROW_NUMBER ( )   \n" +
+                    "    OVER ( order BY t.type_work  ) id, t.type_work from (\n" +
+                    "SELECT distinct type_work  FROM PROJECT where type_work not like '%ГРУППА РАБ%' and modified_date =? and builder='" + builders + "') t";
 
 
             System.out.println("Шаг 2 из 2");
             System.out.println("Выберете тип работ через Enter");
 
-            try (Connection connection = jdbcConnectionPool.getConnection();
+            try (Connection connection = getConnection();
 
                  PreparedStatement preparedStatement = connection.prepareStatement(arrayTypeWork)) {
+                preparedStatement.setTimestamp(1, t);
                 ResultSet rs = preparedStatement.executeQuery();
+
                 while (rs.next()) {
-                    listWork.put(rs.getInt("id"), rs.getString("typeWork"));
+                    listWork.put(rs.getInt("id"), rs.getString("type_work"));
                 }
 
             }
@@ -328,71 +215,41 @@ public class DbHandler {
 
 //            System.out.println(lineQuery);
 
-            String Query1 = "select  * from ( \n" +
-                    "        select * from (  \n" +
-                    "                            SELECT sum_task,dense_rank() over ( order by taskid) rnk,   \n" +
-                    "                            taskid, taskname, resoursename, builder,typework,   sum(val) val ,  \n" +
-                    "         type,  monday,  \n" +
-                    "case \n" +
-                    "when type = 'факт' then monday else start end start ,\n" +
-                    "case \n" +
-                    "when type = 'факт' then monday else finish end finish, materialLabel" +
-                    "        FROM PROJECT   \n" +
-                    "          where length(actfinish) =4 and ((sum_task='true') or( BUILDER =? ))       \n" +
-                    "         group by taskid, taskname, resoursename, builder,typework , type , monday, start,   \n" +
-                    "        finish,materialLabel ) order by rnk asc, type asc) \n" +
-                    "\n" +
-                    "\n";
+            String Query1 = "" +
+                    "               select * from (SELECT sum_task,dense_rank() over ( order by task_id) rnk,    \n" +
+                    "                 task_id, task_name, resource_name, builder,type_work,   sum(val) val ,   \n" +
+                    "                 type,  monday, modified_date,   \n" +
+                    "        \t\t case  \n" +
+                    "        \t\t\t when type_work  = 'факт' then monday else \"start\" end \"start\" , \n" +
+                    "        \t\t case  \n" +
+                    "        \t\t\twhen type_work = 'факт' then monday else finish end finish, \n" +
+                    "        \t\tmaterial_Label \n" +
+                    "                FROM PROJECT    \n" +
+                    "                where act_finish is null  and ((sum_task='true') or( BUILDER =? ) )        \n" +
+                    "                group by task_id, task_name, resource_name, builder,type_work , type , monday,\n" +
+                    "                \"start\", finish,\n" +
+                    "                material_label,sum_task, modified_date \n" +
+                    "                order by rnk asc, type asc ) t where t.modified_date =?  ";
 
 
-            String QueryAll = "" +
-                    "select * from (" +
-                    "SELECT sum_task,dense_rank() over ( order by taskid) rnk, " +
-                    "taskid, taskname, resoursename, builder,typework,   sum(val) val , (select min(monday)  from project) mindate,  type, \n" +
-                    "case " +
-                    "when monday is null then  (select min(monday) from project) " +
-                    "else monday " +
-                    "end monday, " +
-                    "case " +
-                    "when type = 'plan'  then  start " +
-                    "else '' " +
-                    "end start, " +
-                    "  case " +
-                    "when type = 'plan'  then  finish " +
-                    "else '' " +
-                    "end finish, " +
-                    " case " +
-                    " when monday is null then 0 " +
-                    " else " +
-                    " datediff(day,  (select min(monday) from project), monday )/7 end week FROM PROJECT " +
-                    "  where length(actfinish) =4 and ((sum_task='true') or( BUILDER =? ))   " +
-                    " group by taskid, taskname, resoursename, builder,typework, (select min(monday) from project) , type , monday, start, " +
-                    "finish) order by rnk asc, type desc";
-
-
-//            if (lineQuery.length() > 0) {
-//                Query = Query1;
-//            } else Query = Query1;
             Query = Query1;
 
 
-
-            String QueryPeriod2 = "Select mindate, datediff(day, mindate,maxdate)/7 week " +
-                    "from ( select min(monday) mindate,  max(monday) maxdate   from project  " +
-                    "where builder =?)"
-                    ;
-
-            String QueryPeriod ="Select mindate, datediff(day, mindate,maxdate)/7 week " +
-                    "      from ( select min(monday) mindate,  max(monday) maxdate   from project " +
-                    "where length(actfinish) =4 and ((sum_task='true') or( BUILDER =?)) and lower(typework) in (" + lineQuery + ")) ";
+            String QueryPeriod = " select min(monday) mindate,  max(monday) maxdate   from project " +
+                    "where act_finish is null and ((sum_task='true') or( BUILDER =?)) and lower(type_work) in (" + lineQuery + ")  ";
 
 
-            try (Connection connection = jdbcConnectionPool.getConnection();
+            try (Connection connection = getConnection();
                  PreparedStatement preparedStatement = connection.prepareStatement(QueryPeriod)) {
                 preparedStatement.setString(1, builders);
                 ResultSet rs = preparedStatement.executeQuery();
                 while (rs.next()) {
-                    int hatWeek = rs.getInt("week");
+                    Date start = rs.getDate("mindate");
+                    Date finish = rs.getDate("maxdate");
+
+                    long period = ((finish.getTime() - start.getTime()) / (1000 * 60 * 60 * 24) + 1) / 7;
+                    int hatWeek = (int) period;
+//                    int hatWeek = rs.getInt("week");
                     Date hatDates = rs.getDate("mindate");
                     mindate = hatDates;
 
@@ -418,10 +275,8 @@ public class DbHandler {
                     Cell row0Сell14 = row0.createCell(14);
 
 
-
                     Cell fact = row1.createCell(14);
                     fact.setCellValue("Факт");
-
 
 
                     row0Сell0.setCellValue((String) "Оставить");
@@ -449,8 +304,6 @@ public class DbHandler {
                     cellStyleBlack.setFillForegroundColor(IndexedColors.BLACK.index);
                     cellStyleBlack.setFont(font);
                     cellStyleBlack.setAlignment(HorizontalAlignment.CENTER);
-
-
 
 
                     cellStyleBlack.setFillPattern(FillPatternType.SOLID_FOREGROUND);
@@ -526,21 +379,23 @@ public class DbHandler {
                 throw new RuntimeException(e);
             }
 
-            for (int h = 0; h<8;h++) {
+            for (int h = 0; h < 8; h++) {
                 sheet.addMergedRegion(new CellRangeAddress(0, 1, h, h));
             }
 
-            for (int h = 9; h<=14;h++) {
+            for (int h = 9; h <= 14; h++) {
                 sheet.addMergedRegion(new CellRangeAddress(0, 1, h, h));
             }
 
-            try (Connection connection = jdbcConnectionPool.getConnection();
+            try (Connection connection = getConnection();
 
                  PreparedStatement preparedStatement = connection.prepareStatement(Query)) {
 
                 System.out.println(builders);
 
                 preparedStatement.setString(1, builders);
+                preparedStatement.setTimestamp(2,t);
+                System.out.println(t);
                 ResultSet rs = preparedStatement.executeQuery();
 
                 CellStyle cellStyleBlue = workbook.createCellStyle();
@@ -563,11 +418,6 @@ public class DbHandler {
                 cellStyleWhiteString.setWrapText(true);
 
 
-
-
-
-
-
                 while (rs.next()) {
                     int j = rs.getInt("rnk");
                     String type = rs.getString("type");
@@ -582,11 +432,9 @@ public class DbHandler {
                 ResultSet rs2 = preparedStatement.executeQuery();
 
 
-
-
                 CellStyle cellStyleRound = workbook.createCellStyle();
                 DataFormat format = workbook.createDataFormat();
-                String styleFormat ="0.00";
+                String styleFormat = "0.00";
                 cellStyleRound.setDataFormat(format.getFormat(styleFormat));
 
                 CellStyle cellStyleRedFont = workbook.createCellStyle();
@@ -599,10 +447,10 @@ public class DbHandler {
                 while (rs2.next()) {
                     String mark = "+";
                     String builder = rs2.getString("builder");
-                    String typeWork = rs2.getString("typeWork");
-                    int taskId = rs2.getInt("taskId");
-                    String taskName = rs2.getString("taskName");
-                    String resourseName = rs2.getString("resourseName");
+                    String typeWork = rs2.getString("type_Work");
+                    int taskId = rs2.getInt("task_Id");
+                    String taskName = rs2.getString("task_Name");
+                    String resourseName = rs2.getString("resource_Name");
                     double val = rs2.getDouble("val");
                     String type = rs2.getString("type");
                     int rnk = rs2.getInt("rnk");
@@ -611,11 +459,11 @@ public class DbHandler {
                     String finishBaseline = rs2.getString("finish");
                     Date monday = rs2.getDate("monday");
                     int week = 0;
-                    if (monday!=null ){
-                        week = (int)(((monday.getTime()-mindate.getTime()) / (1000 * 60 * 60 * 24))+1)/7;
+                    if (monday != null) {
+                        week = (int) (((monday.getTime() - mindate.getTime()) / (1000 * 60 * 60 * 24)) + 1) / 7;
                     }
 //                    System.out.println(mindate + " "+ monday+ " "+ week);
-                    String materialLabel = rs2.getString("materialLabel");
+                    String materialLabel = rs2.getString("material_label");
 
                     int k = 0;
 
@@ -626,7 +474,7 @@ public class DbHandler {
                         k = rnk * 2 + 2;
                     }
 
-                    Row rowPr = sheet.getRow(k-1);
+                    Row rowPr = sheet.getRow(k - 1);
                     Row row = sheet.getRow(k);
                     Row rowfact = sheet.getRow(k);
                     int numberStr = k + 1;
@@ -651,7 +499,7 @@ public class DbHandler {
                     Cell c_val = row.createCell(15 + week);
                     c_val.setCellStyle(cellStyleRound);
 
-                    for (int a=1; a <14; a++) {
+                    for (int a = 1; a < 14; a++) {
                         try {
                             sheet.addMergedRegion(new CellRangeAddress(k, k + 1, a, a));
                         } catch (Exception e) {
@@ -668,11 +516,9 @@ public class DbHandler {
                     c_materialLabel.setCellValue(materialLabel);
 
 
-
-
-                    if (val != 0 && sumTask ==null ) {
-                            c_val.setCellValue(val);
-                            c_val.setCellStyle(cellStyleRound);
+                    if (val != 0 && sumTask.equals("false")) {
+                        c_val.setCellValue(val);
+                        c_val.setCellStyle(cellStyleRound);
 
                     }
 
@@ -685,7 +531,7 @@ public class DbHandler {
                         int j = k + 1;
 
 
-                        if (sumTask == null) {
+                        if (sumTask.equals("false")) {
                             c_planDate.setCellFormula("SUMIF($O$3:$PPP$3,\"+\",O" + j + ":PPP" + j + ")");
                             c_balance.setCellFormula("H" + j + "-" + "J" + j);
                             c_planDate.setCellStyle(cellStyleRound);
@@ -694,19 +540,19 @@ public class DbHandler {
 
                     }
 
-                    if (type.equals("план") ){
+                    if (type.equals("план")) {
                         c_startBaseline.setCellValue(startBaseline);
                         c_finishBaseline.setCellValue(finishBaseline);
                     }
 
                     c_sumTask.setCellValue((String) sumTask);
 
-                    if (type.equals("план") && sumTask == null) {
+                    if (type.equals("план") && sumTask.equals("false")) {
                         c_sumPlan.setCellFormula("sum(O" + numberStr + ":ppp" + numberStr + ")");
                         c_sumPlan.setCellStyle(cellStyleRound);
 
                     }
-                    if (type.equals("факт") && sumTask == null) {
+                    if (type.equals("факт") && sumTask.equals("false")) {
                         c_sumFact.setCellFormula("sum(O" + numberStr + ":ppp" + numberStr + ")");
                         c_sumFact.setCellStyle(cellStyleRound);
                         c_val.setCellStyle(cellStyleRedFont);
@@ -717,7 +563,7 @@ public class DbHandler {
 
                     }
 
-                    if (sumTask !=null) {
+                    if (!sumTask.equals("false")) {
                         c_sumTask.setCellStyle(cellStyleBlue);
                         c_typeWork.setCellStyle(cellStyleBlue);
                         c_taskName.setCellStyle(cellStyleBlue);
@@ -742,8 +588,8 @@ public class DbHandler {
 
 
                 Row row2 = sheet.getRow(2);
-                 Cell cell = row2.getCell(9);
-                 cell.setCellStyle(cellStyleBlack);
+                Cell cell = row2.getCell(9);
+                cell.setCellStyle(cellStyleBlack);
                 for (int p = 14; p < 120; p++) {
 
                     sheet.autoSizeColumn(p);
@@ -767,20 +613,23 @@ public class DbHandler {
 
 
             try {
-                ProjectMS projectMS = new ProjectMS();
-                System.out.println(projectMS.getFilename());
 
-                String file_name = projectMS.getFilename();
+                CodeSource codeSource = ProjectMS.class.getProtectionDomain().getCodeSource();
+                File jarFile = new File(codeSource.getLocation().toURI().getPath());
+                String jarDir = jarFile.getParentFile().getPath();
 
-                String file_name_new = file_name.replace(".xlsx", builders + "_подрядчикам.xlsx");
+                String file_name = jarDir + "\\" + name + "_подрядчикам.xlsx";
+                System.out.println("Файл сохранён в директории " + file_name);
 
-                FileOutputStream outputStream = new FileOutputStream(file_name_new);
+                FileOutputStream outputStream = new FileOutputStream(file_name);
                 workbook.write(outputStream);
                 workbook.close();
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
+            } catch (URISyntaxException e) {
+                throw new RuntimeException(e);
             }
 
             System.out.println("Done");
@@ -789,131 +638,8 @@ public class DbHandler {
         } catch (BatchUpdateException e) {
             System.out.println("Exception Message " + e.getLocalizedMessage());
         } finally {
-            jdbcConnectionPool.dispose();
+            getConnection().close();
         }
     }
-
-
-    public void selectAssign() throws SQLException {
-        JdbcConnectionPool jdbcConnectionPool = getConnectionPool();
-
-        try {
-
-            String Query1 = "SELECT start,val/period perDay, types,taskname,guid,resourcename, period, taskid, resourcetype,  builder, typeWork, actFinish, start, finish, materiallabel FROM ASSING  ";
-
-
-            try (Connection connection = jdbcConnectionPool.getConnection();
-                 PreparedStatement preparedStatement = connection.prepareStatement(Query1)) {
-                ResultSet rs = preparedStatement.executeQuery();
-
-                while (rs.next()) {
-
-                    int period = rs.getInt("period");
-                    for (int j = 0; j < period; j++) {
-                        Date days = rs.getDate("start");
-                        Calendar c = Calendar.getInstance();
-                        c.setTime(days);
-                        c.add(Calendar.DAY_OF_MONTH, j);
-                        Calendar c2 = Calendar.getInstance();
-                        c2.setTime(days);
-                        c2.add(Calendar.DAY_OF_MONTH, j - 1);
-
-                        int monday = c2.get(Calendar.DAY_OF_WEEK);
-                        c2.add(Calendar.DAY_OF_MONTH, -monday + 2);
-
-                        float perDay = rs.getFloat("perDay");
-                        String types = rs.getString("types");
-                        String taskname = rs.getString("taskname");
-                        String guid = rs.getString("guid");
-                        String resourcename = rs.getString("resourcename");
-                        int taskid = rs.getInt("taskid");
-                        String resourcetype = rs.getString("resourcetype");
-                        String builder = rs.getString("builder");
-                        String typeWork = rs.getString("typeWork");
-                        String actFinish = rs.getString("actFinish");
-                        String start = rs.getString("start");
-                        String finish = rs.getString("finish");
-                        String project_name = ProjectMS.getProjectName();
-                        String materiallabel = rs.getString("materiallabel");
-
-
-                        java.util.Date utilDate = c.getTime();
-                        java.sql.Date sqlDate = new java.sql.Date(utilDate.getTime());
-
-                        java.util.Date utilDate2 = c2.getTime();
-                        java.sql.Date sqlDate2 = new java.sql.Date(utilDate2.getTime());
-
-                        insertDB(resourcename, taskname, taskid, sqlDate, perDay, types, guid, sqlDate2, resourcetype, builder, typeWork, actFinish, start, finish, project_name, materiallabel);
-
-
-//                        System.out.println(c.getTime() + " " + c2.getTime() + " " + perDay + " " + types + " " + taskname + " " + guid + " " + resourcename + " " + taskid);
-
-                    }
-
-
-                }
-
-            }
-
-        } catch (BatchUpdateException e) {
-            System.out.println("Exception Message " + e.getLocalizedMessage());
-        } finally {
-            jdbcConnectionPool.dispose();
-        }
-    }
-
-
-    public void createTableProject() throws SQLException {
-        JdbcConnectionPool jdbcConnectionPool = getConnectionPool();
-        Connection connection = jdbcConnectionPool.getConnection();
-        Statement stmt = null;
-        try {
-            connection.setAutoCommit(false);
-            stmt = connection.createStatement();
-            stmt.execute("CREATE TABLE PROJECT ( RESOURSENAME varchar(255), taskId int, taskName varchar(255) ,dateAssig date, val float, type varchar(50), taskguid varchar(50), monday date, resourcetype varchar(50),  builder varchar(250), typeWork varchar(250), actFinish varchar(50), sum_task varchar(10), start varchar(50), finish varchar(50), project_name varchar(255), materiallabel varchar(255)  )");
-            connection.commit();
-        } catch (BatchUpdateException e) {
-            System.out.println("Exception Message " + e.getLocalizedMessage());
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            jdbcConnectionPool.dispose();
-        }
-    }
-
-    public void createTableAssign() throws SQLException {
-        JdbcConnectionPool jdbcConnectionPool = getConnectionPool();
-        Connection connection = jdbcConnectionPool.getConnection();
-        Statement stmt = null;
-        try {
-            connection.setAutoCommit(false);
-            stmt = connection.createStatement();
-            stmt.execute("CREATE TABLE assing (start date, finish date,  val float , types varchar(255),  taskName varchar(255), GUID varchar(255),  resourceName varchar(255), period int, taskid int, resourceType varchar(255),  builder varchar(250), typeWork varchar(250), actFinish varchar(50), materialLabel varchar(100))");
-            connection.commit();
-        } catch (BatchUpdateException e) {
-            System.out.println("Exception Message " + e.getLocalizedMessage());
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            jdbcConnectionPool.dispose();
-        }
-    }
-
-    public void dropTable() throws SQLException {
-        JdbcConnectionPool jdbcConnectionPool = getConnectionPool();
-        Connection connection = jdbcConnectionPool.getConnection();
-        Statement stmt = null;
-        try {
-            connection.setAutoCommit(false);
-            stmt = connection.createStatement();
-            stmt.execute("DROP TABLE  if exists project; DROP TABLE  if exists assing ");
-            connection.commit();
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            jdbcConnectionPool.dispose();
-        }
-    }
-
 
 }
