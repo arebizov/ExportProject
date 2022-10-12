@@ -8,14 +8,12 @@ import java.util.Scanner;
 import static ru.projectMS.connectionDB.ConnectionsDbMSSQL.getConnection;
 
 public class ProjectList {
+    static SchemaDB schemaDB = new SchemaDB();
+    public static String schema = schemaDB.getSchema() ;
 
-
-
-
-
-    public class Projects{
+    public class Projects {
         private int rnk;
-        private  String projectName;
+        private String projectName;
         private Timestamp modifiedDate;
 
         public Projects(int rnk, String projectName, Timestamp modifiedDate) {
@@ -24,50 +22,51 @@ public class ProjectList {
             this.modifiedDate = modifiedDate;
         }
 
-        } ;
+    }
 
 
-        public Timestamp getList() {
+    public Timestamp getList() {
 
-            Timestamp timestamp;
-            String project;
-            {
-                System.out.println("id; наименование проекта; дата изменения");
-                String Query = "select distinct \n" +
-                        "rank() over( partition by project_name order by modified_date) rnk,\n" +
-                        " project_name, modified_date\n" +
-                        "from project";
+        Timestamp timestamp;
 
-                ArrayList<Projects> projectsArrayList = new ArrayList<>();
-                try (Connection connection = getConnection();
-                     PreparedStatement preparedStatement = connection.prepareStatement(Query)) {
-                    ResultSet rs = preparedStatement.executeQuery();
-                    while (rs.next()) {
+        {
+            System.out.println("id; наименование проекта; дата изменения");
+            String Query = "select distinct \n" +
+                    "rank() over( partition by project_name order by modified_date) rnk,\n" +
+                    " project_name, modified_date\n" +
+                    "from "+schema+"project";
 
-                        int rnk = rs.getInt("rnk");
-                        String projectName = rs.getString("project_name");
-                        Timestamp modifiedDate = rs.getTimestamp("modified_date");
-                        projectsArrayList.add(new Projects(rnk, projectName, modifiedDate));
+            ArrayList<Projects> projectsArrayList = new ArrayList<>();
+            try (Connection connection = getConnection();
 
+                 PreparedStatement preparedStatement = connection.prepareStatement(Query)) {
 
-                    }
-                    for (int i = 0; i < projectsArrayList.size(); i++) {
+                ResultSet rs = preparedStatement.executeQuery();
+                while (rs.next()) {
 
-                        System.out.println(i + " ;" + projectsArrayList.get(i).projectName + " ;" + projectsArrayList.get(i).modifiedDate);
-                    }
+                    int rnk = rs.getInt("rnk");
+                    String projectName = rs.getString("project_name");
+                    Timestamp modifiedDate = rs.getTimestamp("modified_date");
+                    projectsArrayList.add(new Projects(rnk, projectName, modifiedDate));
 
 
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
+                }
+                for (int i = 0; i < projectsArrayList.size(); i++) {
+
+                    System.out.println(i + " ;" + projectsArrayList.get(i).projectName + " ;" + projectsArrayList.get(i).modifiedDate);
                 }
 
-                System.out.println("Выберете документ (id проекта): ");
-                Scanner scanner = new Scanner(System.in);
-                int sel = scanner.nextInt();
-                timestamp = projectsArrayList.get(sel).modifiedDate;
-//                System.out.println(timestamp);
-                project = projectsArrayList.get(sel).projectName;
+
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
             }
-            return timestamp;
+
+            System.out.println("Выберете документ (id проекта): ");
+            Scanner scanner = new Scanner(System.in);
+            int sel = scanner.nextInt();
+            timestamp = projectsArrayList.get(sel).modifiedDate;
+
         }
+        return timestamp;
+    }
 }

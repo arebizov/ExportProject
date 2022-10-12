@@ -6,6 +6,7 @@ import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import ru.projectMS.filesProject.ProjectMS;
+import ru.projectMS.filesProject.SchemaDB;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -31,13 +32,17 @@ public class DbHandler {
 
     public static String name;
 
+    static SchemaDB schemaDB = new SchemaDB();
+    public static String schema = schemaDB.getSchema() ;
+
+
     public void select(Timestamp modifiedDate) throws SQLException {
         XSSFWorkbook workbook = new XSSFWorkbook();
         XSSFSheet sheet = workbook.createSheet("Выгрузка");
         int i = 0;
         try {
             String Query = "\n" +
-                    "SELECT task_id,task_guid, task_name,  resource_name , monday, type, sum(val) val, resource_type   FROM PROJECT where modified_Date = ? group by task_guid, resource_name, task_name, monday, type, task_id, resource_type ";
+                    "SELECT task_id,task_guid, task_name,  resource_name , monday, type, sum(val) val, resource_type   FROM"+schema+"PROJECT where modified_Date = ? group by task_guid, resource_name, task_name, monday, type, task_id, resource_type ";
             try (Connection connection = getConnection();
                  PreparedStatement preparedStatement = connection.prepareStatement(Query)) {
 
@@ -144,7 +149,7 @@ public class DbHandler {
         HashMap<Integer, String> listWork = new HashMap<>();
         String arrayBuilders = "select  ROW_NUMBER ( )    \n" +
                 "            OVER ( order BY build.builder  ) id, build.builder from ( \n" +
-                "        SELECT distinct builder  FROM PROJECT where builder !='null' and modified_date = ?) build";
+                "        SELECT distinct builder  FROM "+schema+"PROJECT where builder !='null' and modified_date = ?) build";
 
 
         try (Connection connection = getConnection();
@@ -177,7 +182,7 @@ public class DbHandler {
 
             String arrayTypeWork = " select 0 id, 'Завершить выбор' type_work union all select  ROW_NUMBER ( )   \n" +
                     "    OVER ( order BY t.type_work  ) id, t.type_work from (\n" +
-                    "SELECT distinct type_work  FROM PROJECT where type_work not like '%ГРУППА РАБ%' and modified_date =? and builder='" + builders + "') t";
+                    "SELECT distinct type_work  FROM "+schema+"PROJECT where type_work not like '%ГРУППА РАБ%' and modified_date =? and builder='" + builders + "') t";
 
 
             System.out.println("Шаг 2 из 2");
@@ -223,7 +228,7 @@ public class DbHandler {
                     "        \t\t case  \n" +
                     "        \t\t\twhen type_work = 'факт' then monday else finish end finish, \n" +
                     "        \t\tmaterial_Label \n" +
-                    "                FROM PROJECT    \n" +
+                    "                FROM "+schema+"PROJECT    \n" +
                     "                where act_finish is null  and ((sum_task='true') or( BUILDER =? ) )        \n" +
                     "                group by task_id, task_name, resource_name, builder,type_work , type , monday,\n" +
                     "                \"start\", finish,\n" +
@@ -234,7 +239,7 @@ public class DbHandler {
             Query = Query1;
 
 
-            String QueryPeriod = " select min(monday) mindate,  max(monday) maxdate   from project " +
+            String QueryPeriod = " select min(monday) mindate,  max(monday) maxdate   from "+schema+"project " +
                     "where act_finish is null and ((sum_task='true') or( BUILDER =?)) and lower(type_work) in (" + lineQuery + ")  ";
 
 

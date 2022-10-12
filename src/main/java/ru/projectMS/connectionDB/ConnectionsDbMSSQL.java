@@ -24,8 +24,9 @@ public class ConnectionsDbMSSQL {
         } catch (ClassNotFoundException e) {
             System.out.println(e.getMessage());
         }
-        String url = "jdbc:sqlserver://localhost:1433;"+"database=master;" + "user=sa; " + "password=Supperpassword1@;" ;
+        String url = "jdbc:sqlserver://localhost:1433;"+"database=master;" + "user=sa; " + "password=Supperpassword1@;"+ "schema=dbo" ;
         connection = DriverManager.getConnection(url);
+     
 
         return connection;
     }
