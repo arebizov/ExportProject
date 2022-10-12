@@ -28,7 +28,6 @@ public class ConnectionsDbMSSQL {
             System.out.println(e.getMessage());
         }
         String url = schemaDB.getURLDb();
-        connection = DriverManager.getConnection(url);
 
 
         return connection;
