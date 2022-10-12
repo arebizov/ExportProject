@@ -1,6 +1,8 @@
 package ru.projectMS.connectionDB;
 
 
+import ru.projectMS.filesProject.SchemaDB;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -17,6 +19,7 @@ public class ConnectionsDbMSSQL {
 
     // Create connection
     public static Connection getConnection() throws SQLException {
+        SchemaDB schemaDB = new SchemaDB();
         Connection connection = null;
         try {
             Class.forName(DB_DRIVER);
@@ -24,9 +27,9 @@ public class ConnectionsDbMSSQL {
         } catch (ClassNotFoundException e) {
             System.out.println(e.getMessage());
         }
-        String url = "jdbc:sqlserver://localhost:1433;"+"database=master;" + "user=sa; " + "password=Supperpassword1@;"+ "schema=dbo" ;
+        String url = schemaDB.getURLDb();
         connection = DriverManager.getConnection(url);
-     
+
 
         return connection;
     }
