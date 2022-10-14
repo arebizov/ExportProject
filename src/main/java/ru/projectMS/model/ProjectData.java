@@ -68,7 +68,29 @@ public class ProjectData {
     @Column(name = "type")
     private String types;
 
+    @Column(name = "corp_cmr")
+    private String corpCMR;
+
+    @Column(name = "corp_obj")
+    private String corpObj;
+
     public ProjectData() {
+    }
+
+    public String getCorpCMR() {
+        return corpCMR;
+    }
+
+    public void setCorpCMR(String corpCMR) {
+        this.corpCMR = corpCMR;
+    }
+
+    public String getCorpObj() {
+        return corpObj;
+    }
+
+    public void setCorpObj(String corpObj) {
+        this.corpObj = corpObj;
     }
 
     public int getId() {

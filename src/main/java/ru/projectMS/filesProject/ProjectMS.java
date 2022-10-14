@@ -18,18 +18,12 @@ public class ProjectMS {
 
     public static String outFiles;
     public static String projectName;
-    public static int action;
     public static Timestamp modifiedDate;
 
     public String getFilename() {
 
         return outFiles;
     }
-
-//    public static String getProjectName() {
-//
-//        return projectName;
-//    }
 
     public static void main(String[] args) throws Exception {
 
@@ -54,9 +48,9 @@ public class ProjectMS {
         if (k == 1) {
 
             ProjectList projectList = new ProjectList();
-
-
             Timestamp t = projectList.getList();
+
+
             System.out.println(t);
             DbHandler dbHandler = new DbHandler();
             dbHandler.select(t);
@@ -69,8 +63,8 @@ public class ProjectMS {
                     System.out.println("Введите путь до файла MS Project");
 
 
-//                    String filename = "d:\\onest.mpp"; // эту комментировать
-                        String filename = "d:\\example2.mpp"; // эту комментировать
+                    String filename = "d:\\onest.mpp"; // эту комментировать
+//                    String filename = "d:\\example2.mpp"; // эту комментировать
 //                    String filename = "d:\\vr5.mpp"; // эту комментировать
 
 
@@ -79,20 +73,23 @@ public class ProjectMS {
 //                    String filename1 = path.replace(".mpp", "");
 //                    String filename = filename1 + ".mpp";
                     ProjectFile mpx = new UniversalProjectReader().read(filename);
+
                     projectName = getProjectName(mpx);
                     if (getProjectName(mpx) == null) {
-                        System.out.println("Заполните имя проекта в локальном текстовом справочнике код 30");
-                        System.out.println("загрузка документа невозможна");
+                    System.out.println("Заполните имя проекта в локальном текстовом справочнике код 30");
+                    System.out.println("загрузка документа невозможна");
                     } else {
-                        Date fileModifiedDate = lastModified(filename);
-                        modifiedDate = (Timestamp) fileModifiedDate;
-                        outFiles = filename.replace("mpp", "xlsx");
-                        ProjectDataDAO projectDataDAO = new ProjectDataDAO();
-                        projectDataDAO.deleteProject(modifiedDate);
-                        AssignDAO assignDAO = new AssignDAO();
-                        assignDAO.deleteAssignment(modifiedDate);
-                        listTasks(mpx);
-                        listAssignments(mpx);
+                    Date fileModifiedDate = lastModified(filename);
+                    modifiedDate = (Timestamp) fileModifiedDate;
+                    outFiles = filename.replace("mpp", "xlsx");
+                    ProjectDataDAO projectDataDAO = new ProjectDataDAO();
+                    projectDataDAO.deleteProject(modifiedDate);
+                    AssignDAO assignDAO = new AssignDAO();
+                    assignDAO.deleteAssignment(modifiedDate);
+                    listTasks(mpx);
+                    listAssignments(mpx);
+                    System.out.println("Нормализация данных");
+                    pr( modifiedDate);
                     }
 
                 } else {
@@ -185,8 +182,8 @@ public class ProjectMS {
                 resourceType = String.valueOf(assignment.getResource().getType());
                 materialLabel = String.valueOf(assignment.getResource().getMaterialLabel());
             } else {
-                resourceName = "";
-                resourceType = "";
+                resourceName = null;
+                resourceType = null;
             }
             int taskid = assignment.getTask().getID();
 
@@ -218,9 +215,8 @@ public class ProjectMS {
                 java.util.Date utilDate2 = c2.getTime();
                 java.sql.Date finishDate = new java.sql.Date(utilDate2.getTime());
                 System.out.println(startDate + " " + finishDate + " " + value + " " + types + " " + GUID + " " + builder + " " + typeWork + " " + actFinish + " " + materialLabel + " " + resourceName + " " + resourceType);
-//                dbHandler.insertAccum( startDate, finishDate, value, types, taskName, GUID, resourceName, period, taskid, resourceType, builder, typeWork, actFinish, materialLabel, modifiedDate);
                 assignDAO.insertAssignment(startDate, finishDate, valFloat, types, taskName, GUID, resourceName, periodInt, taskid, resourceType, builder, typeWork, actFinishDate, materialLabel, modifiedDate);
-                assignDAO.normalizeInsertAssignment(startDate, finishDate, valFloat, types, taskName, GUID, resourceName, periodInt, taskid, resourceType, builder, typeWork, actFinishDate, materialLabel, modifiedDate);
+//                assignDAO.normalizeInsertAssignment(startDate, finishDate, valFloat, types, taskName, GUID, resourceName, periodInt, taskid, resourceType, builder, typeWork, actFinishDate, materialLabel, modifiedDate);
             }
         }
 
@@ -244,7 +240,7 @@ public class ProjectMS {
             double value = Double.parseDouble(v.replace("h", ""));
             float valFloat = (float) value;
             String types = "план";
-            String typesFact = "факт";
+
             String taskName = String.valueOf(assignment.getTask().getName());
             String GUID = projectName;
             String resourceName = String.valueOf(assignment.getResource().getName());
@@ -252,9 +248,8 @@ public class ProjectMS {
             String resourceType = (String.valueOf(assignment.getResource().getType()));
             String builder = String.valueOf(assignment.getTask().getOutlineCode(1));
             String typeWork = String.valueOf(assignment.getTask().getOutlineCode(2));
-            String actFinish = String.valueOf(assignment.getTask().getActualFinish());
             Date actFinishDate = assignment.getTask().getActualFinish();
-            String materialLabel = "нет";
+            String materialLabel;
 
             if (assignment.getResource() != null) {
 
@@ -264,9 +259,16 @@ public class ProjectMS {
             }
 
             assignDAO.insertAssignment(startDate, finishDate, valFloat, types, taskName, GUID, resourceName, periodInt, taskid, resourceType, builder, typeWork, actFinishDate, materialLabel, modifiedDate);
-            assignDAO.normalizeInsertAssignment(startDate, finishDate, valFloat, types, taskName, GUID, resourceName, periodInt, taskid, resourceType, builder, typeWork, actFinishDate, materialLabel, modifiedDate);
+//            assignDAO.normalizeInsertAssignment(startDate, finishDate, valFloat, types, taskName, GUID, resourceName, periodInt, taskid, resourceType, builder, typeWork, actFinishDate, materialLabel, modifiedDate);
 
         }
+
+
+    }
+
+    private static void pr(Timestamp t) {
+        AssignDAO assignDAO = new AssignDAO();
+        assignDAO.normalizeInsertAssignmentv2(t);
     }
 }
 

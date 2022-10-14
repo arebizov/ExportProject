@@ -31,10 +31,8 @@ public class ProjectList {
 
         {
             System.out.println("id; наименование проекта; дата изменения");
-            String Query = "select distinct \n" +
-                    "rank() over( partition by project_name order by modified_date) rnk,\n" +
-                    " project_name, modified_date\n" +
-                    "from "+schema+"project";
+            String Query = "select  rank() over (partition by t. project_name order by t.modified_date desc ) rnk, * from (\n" +
+                    "select distinct project_name , modified_date from"+schema+"project) t";
 
             ArrayList<Projects> projectsArrayList = new ArrayList<>();
             try (Connection connection = getConnection();

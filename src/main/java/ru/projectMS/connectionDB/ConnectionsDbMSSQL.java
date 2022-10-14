@@ -32,4 +32,20 @@ public class ConnectionsDbMSSQL {
 
         return connection;
     }
+    public static Connection getConnectionProjectServer() throws SQLException {
+        SchemaDB schemaDB = new SchemaDB();
+        Connection connection = null;
+        try {
+            Class.forName(DB_DRIVER);
+
+        } catch (ClassNotFoundException e) {
+            System.out.println(e.getMessage());
+        }
+        String url = schemaDB.getURLDbProjectServer();
+        connection = DriverManager.getConnection(url);
+
+        return connection;
+    }
+
+
 }

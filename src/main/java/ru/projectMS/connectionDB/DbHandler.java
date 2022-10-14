@@ -60,14 +60,14 @@ public class DbHandler {
                 Cell cell07 = row0.createCell(7);
 
 
-                cell0.setCellValue((String) "task_guid");
-                cell01.setCellValue((String) "task_Id");
-                cell02.setCellValue((String) "task_Name");
-                cell03.setCellValue((String) "monday");
-                cell04.setCellValue((String) "val");
-                cell05.setCellValue((String) "type");
-                cell06.setCellValue((String) "resource_name");
-                cell07.setCellValue((String) "resource_type");
+                cell0.setCellValue( "task_guid");
+                cell01.setCellValue( "task_Id");
+                cell02.setCellValue("task_Name");
+                cell03.setCellValue( "monday");
+                cell04.setCellValue( "val");
+                cell05.setCellValue("type");
+                cell06.setCellValue( "resource_name");
+                cell07.setCellValue( "resource_type");
 
 
                 while (rs.next()) {
@@ -92,14 +92,14 @@ public class DbHandler {
                     Cell cell5 = row.createCell(5);
                     Cell cell6 = row.createCell(6);
                     Cell cell7 = row.createCell(7);
-                    cell.setCellValue((String) taskguid);
-                    cell1.setCellValue((int) taskId);
-                    cell2.setCellValue((String) taskName);
-                    cell3.setCellValue((String) monday);
-                    cell4.setCellValue((double) val);
-                    cell5.setCellValue((String) types);
-                    cell6.setCellValue((String) resoursename);
-                    cell7.setCellValue((String) resourceType);
+                    cell.setCellValue(taskguid);
+                    cell1.setCellValue(taskId);
+                    cell2.setCellValue( taskName);
+                    cell3.setCellValue( monday);
+                    cell4.setCellValue( val);
+                    cell5.setCellValue( types);
+                    cell6.setCellValue( resoursename);
+                    cell7.setCellValue(resourceType);
 
 
                 }
@@ -220,20 +220,20 @@ public class DbHandler {
 //            System.out.println(lineQuery);
 
             String Query1 = "" +
-                    "               select * from (SELECT sum_task,dense_rank() over ( order by task_id) rnk,    \n" +
+                    "               SELECT sum_task,dense_rank() over ( order by task_id) rnk,    \n" +
                     "                 task_id, task_name, resource_name, builder,type_work,   sum(val) val ,   \n" +
                     "                 type,  monday, modified_date,   \n" +
                     "        \t\t case  \n" +
-                    "        \t\t\t when type_work  = 'факт' then monday else \"start\" end \"start\" , \n" +
+                    "        \t\t\t when type  = 'факт' then monday else \"start\" end \"start\" , \n" +
                     "        \t\t case  \n" +
-                    "        \t\t\twhen type_work = 'факт' then monday else finish end finish, \n" +
+                    "        \t\t\twhen type = 'факт' then monday else finish end finish, \n" +
                     "        \t\tmaterial_Label \n" +
                     "                FROM "+schema+"PROJECT    \n" +
-                    "                where act_finish is null  and ((sum_task='true') or( BUILDER =? ) )        \n" +
+                    "                where act_finish is null  and ((sum_task='true') or( BUILDER =? ) )  and  modified_date =?     \n" +
                     "                group by task_id, task_name, resource_name, builder,type_work , type , monday,\n" +
                     "                \"start\", finish,\n" +
                     "                material_label,sum_task, modified_date \n" +
-                    "                order by rnk asc, type asc ) t where t.modified_date =?  ";
+                    "                order by rnk asc, type asc  ";
 
 
             Query = Query1;
@@ -283,21 +283,21 @@ public class DbHandler {
                     fact.setCellValue("Факт");
 
 
-                    row0Сell0.setCellValue((String) "Оставить");
-                    row0Сell1.setCellValue((String) "Подрядчик");
-                    row0Сell2.setCellValue((String) "Тип работ");
-                    row0Сell3.setCellValue((String) "Суммарная задача");
-                    row0Сell4.setCellValue((String) "Ресурс");
-                    row0Сell5.setCellValue((String) "TaskID");
-                    row0Сell6.setCellValue((String) "Задача");
-                    row0Сell7.setCellValue((String) "Всего по смете");
-                    row0Сell8.setCellValue((String) "План на");
-                    row0Сell9.setCellValue((String) "Факт");
-                    row0Сell10.setCellValue((String) "Остаток");
-                    row0Сell11.setCellValue((String) "Базовое начало");
-                    row0Сell12.setCellValue((String) "Базовое окончание");
-                    row0Сell14.setCellValue((String) "План");
-                    row0Сell13.setCellValue((String) "Ед. измер.");
+                    row0Сell0.setCellValue( "Оставить");
+                    row0Сell1.setCellValue( "Подрядчик");
+                    row0Сell2.setCellValue( "Тип работ");
+                    row0Сell3.setCellValue( "Суммарная задача");
+                    row0Сell4.setCellValue( "Ресурс");
+                    row0Сell5.setCellValue( "TaskID");
+                    row0Сell6.setCellValue( "Задача");
+                    row0Сell7.setCellValue( "Всего по смете");
+                    row0Сell8.setCellValue( "План на");
+                    row0Сell9.setCellValue( "Факт");
+                    row0Сell10.setCellValue( "Остаток");
+                    row0Сell11.setCellValue( "Базовое начало");
+                    row0Сell12.setCellValue( "Базовое окончание");
+                    row0Сell14.setCellValue( "План");
+                    row0Сell13.setCellValue( "Ед. измер.");
 
 
                     Font font = workbook.createFont();
@@ -482,7 +482,7 @@ public class DbHandler {
                     Row row = sheet.getRow(k);
                     Row rowfact = sheet.getRow(k);
                     int numberStr = k + 1;
-                    int numberStrPre = k;
+//                    int numberStrPre = k;
                     Cell c_mark = row.createCell(0);
                     Cell c_builder = row.createCell(1);
                     Cell c_typeWork = row.createCell(2);
@@ -512,11 +512,11 @@ public class DbHandler {
                     }
 
 
-                    c_builder.setCellValue((String) builder);
-                    c_typeWork.setCellValue((String) typeWork);
-                    c_resourseName.setCellValue((String) resourseName);
-                    c_taskId.setCellValue((int) taskId);
-                    c_taskName.setCellValue((String) taskName);
+                    c_builder.setCellValue( builder);
+                    c_typeWork.setCellValue( typeWork);
+                    c_resourseName.setCellValue(resourseName);
+                    c_taskId.setCellValue( taskId);
+                    c_taskName.setCellValue(taskName);
                     c_materialLabel.setCellValue(materialLabel);
 
 
@@ -527,7 +527,7 @@ public class DbHandler {
                     }
 
 
-                    c_type.setCellValue((String) type);
+                    c_type.setCellValue( type);
 
                     c_mark.setCellValue(mark);
 
@@ -549,7 +549,7 @@ public class DbHandler {
                         c_finishBaseline.setCellValue(finishBaseline);
                     }
 
-                    c_sumTask.setCellValue((String) sumTask);
+                    c_sumTask.setCellValue( sumTask);
 
                     if (type.equals("план") && sumTask.equals("false")) {
                         c_sumPlan.setCellFormula("sum(O" + numberStr + ":ppp" + numberStr + ")");
