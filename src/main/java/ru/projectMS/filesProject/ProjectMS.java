@@ -3,9 +3,16 @@ package ru.projectMS.filesProject;
 import net.sf.mpxj.*;
 import net.sf.mpxj.common.DefaultTimephasedWorkContainer;
 import net.sf.mpxj.reader.UniversalProjectReader;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
+import org.hibernate.query.Query;
 import ru.projectMS.connectionDB.AssignDAO;
 import ru.projectMS.connectionDB.DbHandler;
 import ru.projectMS.connectionDB.ProjectDataDAO;
+import ru.projectMS.connectionDB.ProjectServerDAO;
+import ru.projectMS.model.ProjectData;
+import ru.projectMS.model.ProjectServer;
 
 import java.lang.reflect.Field;
 import java.sql.SQLException;
@@ -63,9 +70,9 @@ public class ProjectMS {
                     System.out.println("Введите путь до файла MS Project");
 
 
-                    String filename = "d:\\onest.mpp"; // эту комментировать
+//                    String filename = "d:\\onest.mpp"; // эту комментировать
 //                    String filename = "d:\\example2.mpp"; // эту комментировать
-//                    String filename = "d:\\vr5.mpp"; // эту комментировать
+                    String filename = "d:\\vr5.mpp"; // эту комментировать
 
 
 //                    Scanner sc = new Scanner(System.in);
@@ -90,6 +97,8 @@ public class ProjectMS {
                     listAssignments(mpx);
                     System.out.println("Нормализация данных");
                     pr( modifiedDate);
+                    System.out.println("Синхронизация данных с сервером");
+                    mapping();
                     }
 
                 } else {
@@ -127,9 +136,50 @@ public class ProjectMS {
 
     }
 
-    private static String getProjectName(ProjectFile file) {
+    public static String getProjectName(ProjectFile file) {
         projectName = file.getTasks().get(0).getText(30);
         return projectName;
+    }
+
+
+
+    public static  void mapping(){
+        ProjectServerDAO projectServerDAO = new ProjectServerDAO();
+        List<ProjectServer>  list = projectServerDAO.selectProject(projectName);
+
+        Configuration configuration = new Configuration().addAnnotatedClass(ProjectData.class);
+        SessionFactory sessionFactory2 = configuration.buildSessionFactory();
+        Session session2 = sessionFactory2.getCurrentSession();
+
+        try {
+            session2.beginTransaction();
+            String hql = "from ProjectData where projectName=:pr and modifiedDate=:modif";
+            Query query = session2.createQuery(hql);
+            query.setParameter("pr",projectName );
+            query.setParameter("modif",modifiedDate);
+            List<ProjectData>  listPoject = query.list();
+
+            for(ProjectData l1 : listPoject){
+
+                for (ProjectServer pr : list){
+                    System.out.println(pr.getCorpObj());
+                    if(l1.getTaskID()== pr.getId()){
+                        l1.setCorpCMR(pr.getCorpCmr());
+                        l1.setCorpObj(pr.getCorpObj());
+                    }
+                }
+
+            }
+
+            session2.getTransaction().commit();
+
+        } finally {
+            session2.close();
+            sessionFactory2.close();
+        }
+
+
+
     }
 
 
