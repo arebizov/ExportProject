@@ -18,7 +18,6 @@ public class SchemaDB {
         return url;
     }
 
-
     public String getURLDbProjectServer(){
         String url = "jdbc:sqlserver://localhost:1433;"+"database=portal_dwh;" + "user=sa;"+"password=Supperpassword1@;";
 //        String url = "jdbc:sqlserver://localhost:1433;"+"database=master;" + "user=sa;"+"password=Supperpassword1@;";
