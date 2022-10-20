@@ -5,11 +5,18 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.query.Query;
-import ru.projectMS.model.Assignment;
 import ru.projectMS.model.ProjectData;
+import ru.projectMS.model.ProjectServer;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+
+import static ru.projectMS.connectionDB.ConnectionsDbMSSQL.getConnectionProjectServer;
 
 public class ProjectDataDAO {
 
@@ -62,7 +69,59 @@ public class ProjectDataDAO {
         }
     }
 
+    public  void update(String projectName) throws SQLException {
+        ProjectServerDAO projectServerDAO = new ProjectServerDAO();
 
+        List<ProjectServer> list = projectServerDAO.selectProject(projectName);
+        String Query = " insert into pbi_1c.tmp_project (task_id, corp_cmr, corp_obj , project_name) values (?,?,?,?)";
+        String Query2 = " delete from  pbi_1c.tmp_project where project_name = ?";
+
+        String Update = "MERGE into pbi_1c.project u \n" +
+                "USING (select * from tmp_project ) s \n" +
+                "on u.task_id = s.task_id and u.project_name = s.project_name \n" +
+                "WHEN  MATCHED THEN UPDATE \n" +
+                "SET u.corp_cmr = s.corp_cmr , u.corp_obj = s.corp_obj; ";
+
+
+        try (Connection connection = getConnectionProjectServer();
+
+             PreparedStatement preparedStatement = connection.prepareStatement(Query2)) {
+            preparedStatement.setString(1, projectName);
+
+            preparedStatement.executeUpdate();
+
+
+            try (
+
+                    PreparedStatement preparedStatement2 = connection.prepareStatement(Query)) {
+
+
+                for (ProjectServer pr : list) {
+                    System.out.println(pr.getId());
+                    preparedStatement2.setInt(1, pr.getId());
+                    preparedStatement2.setString(2, pr.getCorpCmr());
+                    preparedStatement2.setString(3, pr.getCorpObj());
+                    preparedStatement2.setString(4, projectName);
+                    preparedStatement2.executeUpdate();
+
+                }
+
+                try (
+
+                        PreparedStatement preparedStatement3 = connection.prepareStatement(Update)) {
+                    preparedStatement3.executeUpdate();
+
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+
+
+            } catch (
+                    SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
 
 }
 

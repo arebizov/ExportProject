@@ -96,9 +96,9 @@ public class ProjectMS {
                     listTasks(mpx);
                     listAssignments(mpx);
                     System.out.println("Нормализация данных");
-                    pr( modifiedDate);
+//                    pr( modifiedDate);
                     System.out.println("Синхронизация данных с сервером");
-                    mapping();
+                    projectDataDAO.update(projectName);
                     }
 
                 } else {
@@ -266,7 +266,7 @@ public class ProjectMS {
                 java.sql.Date finishDate = new java.sql.Date(utilDate2.getTime());
                 System.out.println(startDate + " " + finishDate + " " + value + " " + types + " " + GUID + " " + builder + " " + typeWork + " " + actFinish + " " + materialLabel + " " + resourceName + " " + resourceType);
                 assignDAO.insertAssignment(startDate, finishDate, valFloat, types, taskName, GUID, resourceName, periodInt, taskid, resourceType, builder, typeWork, actFinishDate, materialLabel, modifiedDate);
-//                assignDAO.normalizeInsertAssignment(startDate, finishDate, valFloat, types, taskName, GUID, resourceName, periodInt, taskid, resourceType, builder, typeWork, actFinishDate, materialLabel, modifiedDate);
+                assignDAO.normalizeInsertAssignment(startDate, finishDate, valFloat, types, taskName, GUID, resourceName, periodInt, taskid, resourceType, builder, typeWork, actFinishDate, materialLabel, modifiedDate);
             }
         }
 
@@ -309,7 +309,7 @@ public class ProjectMS {
             }
 
             assignDAO.insertAssignment(startDate, finishDate, valFloat, types, taskName, GUID, resourceName, periodInt, taskid, resourceType, builder, typeWork, actFinishDate, materialLabel, modifiedDate);
-//            assignDAO.normalizeInsertAssignment(startDate, finishDate, valFloat, types, taskName, GUID, resourceName, periodInt, taskid, resourceType, builder, typeWork, actFinishDate, materialLabel, modifiedDate);
+            assignDAO.normalizeInsertAssignment(startDate, finishDate, valFloat, types, taskName, GUID, resourceName, periodInt, taskid, resourceType, builder, typeWork, actFinishDate, materialLabel, modifiedDate);
 
         }
 

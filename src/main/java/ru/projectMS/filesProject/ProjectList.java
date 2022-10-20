@@ -8,8 +8,8 @@ import java.util.Scanner;
 import static ru.projectMS.connectionDB.ConnectionsDbMSSQL.getConnection;
 
 public class ProjectList {
-    static SchemaDB schemaDB = new SchemaDB();
-    public static String schema = schemaDB.getSchema() ;
+    static Profile profile = new Profile();
+    public static String schema = profile.getSchema() ;
 
     public class Projects {
         private int rnk;

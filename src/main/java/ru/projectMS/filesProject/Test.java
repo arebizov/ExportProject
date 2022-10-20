@@ -8,53 +8,108 @@ import ru.projectMS.connectionDB.ProjectServerDAO;
 import ru.projectMS.model.ProjectData;
 import ru.projectMS.model.ProjectServer;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
+import static ru.projectMS.connectionDB.ConnectionsDbMSSQL.getConnectionProjectServer;
 import static ru.projectMS.filesProject.ProjectMS.getProjectName;
 
 
 public class Test {
 
-    public static void main(String[] args) {
+    public static String projectName = "Врубеля, 4";
+
+    public static void main(String[] args) throws SQLException {
         ProjectMS projectMS = new ProjectMS();
-        String projectName = "Врубеля, 4";
 
-        ProjectServerDAO projectServerDAO = new ProjectServerDAO();
-        List<ProjectServer>  list = projectServerDAO.selectProject(projectName);
+        map();
+        update();
+
+    }
+
+    public static List<ProjectServer> list = new ArrayList<>();
+
+    public static void map() {
 
 
-//        for (ProjectServer pr : list){
-//            System.out.println(pr.getCorpCmr());
-//        }
+        String Query = " select task_id, corp_cmr, corp_obj  from dbo.project_server where project_name = ?";
 
-        Configuration configuration = new Configuration().addAnnotatedClass(ProjectData.class);
-        SessionFactory sessionFactory2 = configuration.buildSessionFactory();
-        Session session2 = sessionFactory2.getCurrentSession();
+        try (Connection connection = getConnectionProjectServer();
+             PreparedStatement preparedStatement = connection.prepareStatement(Query)) {
+            preparedStatement.setString(1, projectName);
+            ResultSet rs = preparedStatement.executeQuery();
+            while (rs.next()) {
+                int taskId = rs.getInt("task_id");
+                String corpCMR = rs.getString("corp_cmr");
+                String corpObj = rs.getString("corp_obj");
+                String projectName = rs.getString("corp_obj");
 
-        try {
-            session2.beginTransaction();
-            String hql = "from ProjectData where projectName=:pr";
-            Query query = session2.createQuery(hql);
-            query.setParameter("pr",projectName );
-            List<ProjectData>  listPoject = query.list();
-
-            for(ProjectData l1 : listPoject){
-
-                for (ProjectServer pr : list){
-                    System.out.println(pr.getCorpObj());
-                    if(l1.getTaskID()== pr.getId()){
-                        l1.setCorpCMR(pr.getCorpCmr());
-                    }
-                }
+                list.add(new ProjectServer(taskId, corpCMR, corpObj,projectName ));
 
             }
 
-            session2.getTransaction().commit();
-
-        } finally {
-            session2.close();
-            sessionFactory2.close();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
 
     }
+
+    public static void update() throws SQLException {
+
+
+        String Query = " insert into tmp_project (task_id, corp_cmr, corp_obj , project_name) values (?,?,?,?)";
+        String Query2 = " delete from  tmp_project where project_name = ?";
+
+        String Update = "MERGE into dbo.project u \n" +
+                "USING (select * from tmp_project ) s \n" +
+                "on u.task_id = s.task_id and u.project_name = s.project_name \n" +
+                "WHEN  MATCHED THEN UPDATE \n" +
+                "SET u.corp_cmr = s.corp_cmr , u.corp_obj = s.corp_obj; ";
+
+
+        try (Connection connection = getConnectionProjectServer();
+
+             PreparedStatement preparedStatement = connection.prepareStatement(Query2)) {
+            preparedStatement.setString(1, projectName);
+
+            preparedStatement.executeUpdate();
+
+
+            try (
+
+                    PreparedStatement preparedStatement2 = connection.prepareStatement(Query)) {
+
+
+                for (ProjectServer pr : list) {
+                    preparedStatement2.setInt(1, pr.getId());
+                    preparedStatement2.setString(2, pr.getCorpCmr());
+                    preparedStatement2.setString(3, pr.getCorpObj());
+                    preparedStatement2.setString(4, projectName);
+                    preparedStatement2.executeUpdate();
+
+                }
+
+                try (
+
+                        PreparedStatement preparedStatement3 = connection.prepareStatement(Update)) {
+                    preparedStatement3.executeUpdate();
+
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+
+
+            } catch (
+                    SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
 }
+
+
+

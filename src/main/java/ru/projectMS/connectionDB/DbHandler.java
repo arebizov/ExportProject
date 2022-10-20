@@ -6,7 +6,7 @@ import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import ru.projectMS.filesProject.ProjectMS;
-import ru.projectMS.filesProject.SchemaDB;
+import ru.projectMS.filesProject.Profile;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -32,8 +32,8 @@ public class DbHandler {
 
     public static String name;
 
-    static SchemaDB schemaDB = new SchemaDB();
-    public static String schema = schemaDB.getSchema() ;
+    static Profile profile = new Profile();
+    public static String schema = profile.getSchema() ;
 
 
     public void select(Timestamp modifiedDate) throws SQLException {

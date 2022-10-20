@@ -47,15 +47,18 @@ public class ProjectServer {
         return corpObj;
     }
 
+
+
     public void setCorpObj(String corpObj) {
         this.corpObj = corpObj;
     }
 
-    public ProjectServer(int taskId, String corpCMR, String corpObj) {
+    public ProjectServer(int taskId, String corpCMR, String corpObj, String projectName) {
 
        this.id = taskId;
        this.corpCmr = corpCMR;
        this.corpObj = corpObj;
+       this.projectName = projectName;
 
 
     }
