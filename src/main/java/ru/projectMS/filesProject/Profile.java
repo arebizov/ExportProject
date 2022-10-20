@@ -179,7 +179,7 @@ public class Profile {
     }
 
     public String getDataFromLocalProject(String projectName) {
-        String url = "select project_name, task_id, corp_cmr, corp_obj  from dbo.project_server where project_name ='"+projectName+"'";
+        String url = "select project_name, task_id, corp_cmr, corp_obj  from pbi_1c.project_server where project_name ='"+projectName+"'";
 
         return url;
     }
