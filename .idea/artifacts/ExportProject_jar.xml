@@ -37,6 +37,8 @@
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/sun/xml/fastinfoset/FastInfoset/1.2.16/FastInfoset-1.2.16.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/glassfish/jaxb/txw2/2.3.2/txw2-2.3.2.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/apache/poi/poi-ooxml-lite/5.2.2/poi-ooxml-lite-5.2.2.jar" path-in-jar="/" />
+      <element id="library" level="project" name="Maven: net.sf.mpxj:mpxj:10.10.0" />
+      <element id="library" level="project" name="Maven: com.microsoft.sqlserver:mssql-jdbc:9.2.1.jre11" />
     </root>
   </artifact>
 </component>

@@ -1,11 +1,6 @@
 package ru.projectMS.filesProject;
 
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.cfg.Configuration;
-import org.hibernate.query.Query;
-import ru.projectMS.connectionDB.ProjectServerDAO;
-import ru.projectMS.model.ProjectData;
+import ru.projectMS.ProjectMS;
 import ru.projectMS.model.ProjectServer;
 
 import java.sql.Connection;
@@ -16,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static ru.projectMS.connectionDB.ConnectionsDbMSSQL.getConnectionProjectServer;
-import static ru.projectMS.filesProject.ProjectMS.getProjectName;
 
 
 public class Test {

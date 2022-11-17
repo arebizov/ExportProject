@@ -69,7 +69,26 @@
 
 
   </dependencies>
+<!--  <build>-->
+<!--    <finalName>ExportProject</finalName>-->
+<!--    -->
+<!--  </build>-->
+
   <build>
-    <finalName>ExportProject</finalName>
+    <plugins>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifest>
+              <mainClass>ru.projectMS.ProjectMS</mainClass>
+            </manifest>
+          </archive>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+        </configuration>
+      </plugin>
+    </plugins>
   </build>
 </project>

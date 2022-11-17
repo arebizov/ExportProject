@@ -17,8 +17,8 @@ public class ProjectServerDAO {
 
 
         try {
-            String Query = profile.getDataFromLocalProject(projectName);
-//            String Query = profile.getDataFromMSProject(projectName);
+            //String Query = profile.getDataFromLocalProject(projectName);
+            String Query = profile.getDataFromMSProject(projectName);
 
             try (Connection connection = getConnectionProjectServer();
                  PreparedStatement preparedStatement = connection.prepareStatement(Query)) {

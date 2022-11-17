@@ -1,4 +1,4 @@
-package ru.projectMS.filesProject;
+package ru.projectMS;
 
 import net.sf.mpxj.*;
 import net.sf.mpxj.common.DefaultTimephasedWorkContainer;
@@ -11,6 +11,7 @@ import ru.projectMS.connectionDB.AssignDAO;
 import ru.projectMS.connectionDB.DbHandler;
 import ru.projectMS.connectionDB.ProjectDataDAO;
 import ru.projectMS.connectionDB.ProjectServerDAO;
+import ru.projectMS.filesProject.ProjectList;
 import ru.projectMS.model.ProjectData;
 import ru.projectMS.model.ProjectServer;
 
@@ -72,13 +73,13 @@ public class ProjectMS {
 
 //                    String filename = "d:\\onest.mpp"; // эту комментировать
 //                    String filename = "d:\\example2.mpp"; // эту комментировать
-                    String filename = "d:\\vr5.mpp"; // эту комментировать
+//                    String filename = "d:\\vr5.mpp"; // эту комментировать
 
 
-//                    Scanner sc = new Scanner(System.in);
-//                    String path = sc.nextLine();
-//                    String filename1 = path.replace(".mpp", "");
-//                    String filename = filename1 + ".mpp";
+                    Scanner sc = new Scanner(System.in);
+                    String path = sc.nextLine();
+                    String filename1 = path.replace(".mpp", "");
+                    String filename = filename1 + ".mpp";
                     ProjectFile mpx = new UniversalProjectReader().read(filename);
 
                     projectName = getProjectName(mpx);
@@ -195,8 +196,8 @@ public class ProjectMS {
 
         for (Task task : file.getTasks()) {
 
-            if (task.getSummary() == true && task.getID() != 0 && task.getOutlineCode(2) != null) {
-                projectDataDAO.insertProject(null, task.getID(), task.getName(), null, val, projectName, null, null, null, task.getOutlineCode(2), null, sumTask, null, null, projectName, null, modifiedDate, typeFact);
+            if (task.getSummary() == true && task.getID() != 0 && task.getText(1) != null) {
+                projectDataDAO.insertProject(null, task.getID(), task.getName(), null, val, projectName, null, null, null, task.getText(1), null, sumTask, null, null, projectName, null, modifiedDate, typeFact);
 
             }
         }
@@ -220,8 +221,10 @@ public class ProjectMS {
             String types = "факт";
             String taskName = String.valueOf(assignment.getTask().getName());
             String GUID = projectName;
-            String builder = String.valueOf(assignment.getTask().getOutlineCode(1));
-            String typeWork = String.valueOf(assignment.getTask().getOutlineCode(2));
+//            String builder = String.valueOf(assignment.getTask().getOutlineCode(1));
+//            String typeWork = String.valueOf(assignment.getTask().getOutlineCode(2));
+            String builder = assignment.getTask().getText(2);
+            String typeWork = assignment.getTask().getText(1);
             String actFinish = String.valueOf(assignment.getTask().getActualFinish());
             Date actFinishDate = assignment.getTask().getActualFinish();
             String materialLabel = "нет";
@@ -296,8 +299,10 @@ public class ProjectMS {
             String resourceName = String.valueOf(assignment.getResource().getName());
             int taskid = assignment.getTask().getID();
             String resourceType = (String.valueOf(assignment.getResource().getType()));
-            String builder = String.valueOf(assignment.getTask().getOutlineCode(1));
-            String typeWork = String.valueOf(assignment.getTask().getOutlineCode(2));
+//            String builder = String.valueOf(assignment.getTask().getOutlineCode(1));
+//            String typeWork = String.valueOf(assignment.getTask().getOutlineCode(2));
+             String builder = assignment.getTask().getText(2);
+            String typeWork = assignment.getTask().getText(1);
             Date actFinishDate = assignment.getTask().getActualFinish();
             String materialLabel;
 

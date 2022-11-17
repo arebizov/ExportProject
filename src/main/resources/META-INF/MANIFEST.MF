@@ -1,3 +1,3 @@
 Manifest-Version: 1.0
-Main-Class: ru.projectMS.filesProject.ProjectMS
+Main-Class: ru.projectMS.ProjectMS
 

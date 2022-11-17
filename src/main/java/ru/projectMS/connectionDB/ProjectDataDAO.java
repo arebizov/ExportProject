@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static ru.projectMS.connectionDB.ConnectionsDbMSSQL.getConnection;
 import static ru.projectMS.connectionDB.ConnectionsDbMSSQL.getConnectionProjectServer;
 
 public class ProjectDataDAO {
@@ -78,17 +79,17 @@ public class ProjectDataDAO {
             System.out.println(pr.getId());
         }
 
-        String Query = " insert into pbi_1c.tmp_project (task_id, corp_cmr, corp_obj , project_name) values (?,?,?,?)";
-        String Query2 = " delete from  pbi_1c.tmp_project where project_name = ?";
+        String Query = " insert into PBI_1C.tmp_project (task_id, corp_cmr, corp_obj , project_name) values (?,?,?,?)";
+        String Query2 = " delete from  PBI_1C.tmp_project where project_name = ?";
 
         String Update = "MERGE into pbi_1c.project u \n" +
-                "USING (select * from pbi_1c.tmp_project ) s \n" +
+                "USING (select * from PBI_1C.tmp_project ) s \n" +
                 "on u.task_id = s.task_id and u.project_name = s.project_name \n" +
                 "WHEN  MATCHED THEN UPDATE \n" +
                 "SET u.corp_cmr = s.corp_cmr , u.corp_obj = s.corp_obj; ";
 
 
-        try (Connection connection = getConnectionProjectServer();
+        try (Connection connection = getConnection();
 
              PreparedStatement preparedStatement = connection.prepareStatement(Query2)) {
             preparedStatement.setString(1, projectName);
@@ -97,8 +98,8 @@ public class ProjectDataDAO {
 
 
             try (
-
-                    PreparedStatement preparedStatement2 = connection.prepareStatement(Query)) {
+Connection connection1 = getConnection();
+                    PreparedStatement preparedStatement2 = connection1.prepareStatement(Query)) {
 
 
                 for (ProjectServer pr : list) {
