@@ -35,17 +35,17 @@ public class ProjectMS {
 
     public static void main(String[] args) throws Exception {
 
-
+        System.out.println("Версия №1 от 07.12.2022");
         System.out.println("Параметры заполнения файла:");
         System.out.println("1. В нулевой задачи должно быть проставлено имя проекта из текстового справочника код 30");
-        System.out.println("2. В суммарных задачах Группа работ из кодировки справочника 2");
-        System.out.println("3. В задачах (не суммарных) проставить подрядчика из кодировки справочника 1");
+        System.out.println("2. В не суммарных задачах в текстовое поле 2 проставить подрядчика");
+        System.out.println("3. В задачах в текстовое поле 1 проставить тип работ ");
         System.out.println("4. Для отчёта по физ. объёмам в задачах в корпоративных полях проставить:");
         System.out.println("   - Тип СМР");
         System.out.println("   - Объект реализации");
         System.out.println();
 
-        System.out.println("Выберете Ваши действия:");
+        System.out.println("Выберите Ваши действия:");
 
         System.out.println("1. Просмотреть ранее загруженные проекты и сформировать отчёт на основании загруженных документов");
         System.out.println("2. Загрузить новый документ");
@@ -100,6 +100,11 @@ public class ProjectMS {
 //                    pr( modifiedDate);
                     System.out.println("Синхронизация данных с сервером");
                     projectDataDAO.update(projectName);
+                    projectDataDAO.deleteAgg(modifiedDate);
+                    System.out.println("Обновление дат базового плана"); // процедура будет работать до тех пор пока не найдём поля периода дат для базового плана
+                    projectDataDAO.updateDate();
+                    System.out.println("Вставка агрегатов");
+                    projectDataDAO.insertAgg(modifiedDate);
                     }
 
                 } else {
@@ -293,7 +298,6 @@ public class ProjectMS {
             double value = Double.parseDouble(v.replace("h", ""));
             float valFloat = (float) value;
             String types = "план";
-
             String taskName = String.valueOf(assignment.getTask().getName());
             String GUID = projectName;
             String resourceName = String.valueOf(assignment.getResource().getName());
@@ -315,6 +319,7 @@ public class ProjectMS {
 
             assignDAO.insertAssignment(startDate, finishDate, valFloat, types, taskName, GUID, resourceName, periodInt, taskid, resourceType, builder, typeWork, actFinishDate, materialLabel, modifiedDate);
             assignDAO.normalizeInsertAssignment(startDate, finishDate, valFloat, types, taskName, GUID, resourceName, periodInt, taskid, resourceType, builder, typeWork, actFinishDate, materialLabel, modifiedDate);
+
 
         }
 

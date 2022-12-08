@@ -3,8 +3,6 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.example</groupId>
   <artifactId>ExportProject</artifactId>
-  <packaging>war</packaging>
-<!--  <pagckaging>jar</pagckaging>-->
   <version>1.0-SNAPSHOT</version>
   <properties>
     <maven.compiler.source>11</maven.compiler.source>

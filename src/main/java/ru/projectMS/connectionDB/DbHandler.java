@@ -33,6 +33,8 @@ public class DbHandler {
     static Profile profile = new Profile();
     public static String schema = profile.getSchema();
 
+    public  static int cntRows;
+
 
     public void select(Timestamp modifiedDate) throws SQLException {
         XSSFWorkbook workbook = new XSSFWorkbook();
@@ -40,7 +42,7 @@ public class DbHandler {
         int i = 0;
         try {
             String Query = "\n" +
-                    "SELECT task_id,task_guid, task_name,  resource_name , monday, type, sum(val) val, resource_type, corp_cmr, corp_obj   FROM" + schema + "PROJECT where modified_Date = ? group by task_guid, resource_name, task_name, monday, type, task_id, resource_type, corp_cmr, corp_obj  ";
+                    "SELECT task_id,task_guid, task_name,  resource_name , monday, type, sum(val) val, resource_type, corp_cmr, corp_obj   FROM" + schema + "PROJECT_aggt where modified_Date = ? group by task_guid, resource_name, task_name, monday, type, task_id, resource_type, corp_cmr, corp_obj  ";
             try (Connection connection = getConnection();
                  PreparedStatement preparedStatement = connection.prepareStatement(Query)) {
 
@@ -157,7 +159,7 @@ public class DbHandler {
         HashMap<Integer, String> listWork = new HashMap<>();
         String arrayBuilders = "select  ROW_NUMBER ( )    \n" +
                 "            OVER ( order BY build.builder  ) id, build.builder from ( \n" +
-                "        SELECT distinct builder  FROM " + schema + "PROJECT where builder !='null' and modified_date = ?) build";
+                "        SELECT distinct builder  FROM " + schema + "PROJECT_aggt where builder !='null' and modified_date = ?) build";
 
 
         try (Connection connection = getConnection();
@@ -190,7 +192,7 @@ public class DbHandler {
 
             String arrayTypeWork = " select 0 id, 'Завершить выбор' type_work union all select  ROW_NUMBER ( )   \n" +
                     "    OVER ( order BY t.type_work  ) id, t.type_work from (\n" +
-                    "SELECT distinct type_work  FROM " + schema + "PROJECT where type_work not like '%ГРУППА РАБ%' and modified_date =? and builder='" + builders + "') t";
+                    "SELECT distinct type_work  FROM " + schema + "PROJECT_aggt where type_work not like '%ГРУППА РАБ%' and modified_date =? and builder='" + builders + "') t";
 
 
             System.out.println("Шаг 2 из 2");
@@ -232,19 +234,26 @@ public class DbHandler {
                     "        \t\t case  \n" +
                     "        \t\t\twhen type = 'факт' then monday else finish end finish, \n" +
                     "        \t\tmaterial_Label \n" +
-                    "                FROM  pbi_1c.PROJECT \n" +
+                    "                FROM  pbi_1c.PROJECT_aggt \n" +
                     "\t\t\t\twhere \n" +
                     "\t\t\tmodified_date =? and type_work='ГРУППА РАБОТ'  \n" +
-                    "\t\t\t\t and  sum_task='true' or (BUILDER =?  and type_work in(" + lineQuery + ") ) \n" +
+                    "\t\t\t\t and  sum_task='true' or (BUILDER =? and modified_date =? and type_work in(" + lineQuery + ") ) \n" +
                     "\t\t\t\tgroup by  task_id, task_name, resource_name, builder,type_work , type , monday,\"start\", finish, material_label,sum_task, modified_date\n" +
                     "\t\t\t\torder by rnk asc, type asc ";
+
+            String QueryCnt = "SELECT count(*) as cnt \n" +
+                    " FROM  pbi_1c.PROJECT_aggt \n" +
+                    "\t\t\t\twhere \n" +
+                    "\t\t\tmodified_date =? and type_work='ГРУППА РАБОТ'  \n" +
+                    "\t\t\t\t and  sum_task='true' or (BUILDER =? and modified_date =? and type_work in(" + lineQuery + ") ) ";
+
 
 
             Query = Query1;
 
 
-            String QueryPeriod = " select min(monday) mindate,  max(monday) maxdate   from " + schema + "project " +
-                    "where act_finish is null and ((sum_task='true') or( BUILDER =?)) and lower(type_work) in (" + lineQuery + ")  ";
+            String QueryPeriod = " select min(monday) mindate,  max(monday) maxdate   from " + schema + "PROJECT_aggt " +
+                    "where  ((sum_task='true') or( BUILDER =?)) and lower(type_work) in (" + lineQuery + ")  ";
 
 
             try (Connection connection = getConnection();
@@ -397,11 +406,27 @@ public class DbHandler {
 
             try (Connection connection = getConnection();
 
+                 PreparedStatement preparedStatement = connection.prepareStatement(QueryCnt)) {
+                preparedStatement.setTimestamp(1, t);
+                preparedStatement.setString(2, builders);
+                preparedStatement.setTimestamp(3, t);
+                ResultSet rs = preparedStatement.executeQuery();
+                while (rs.next()) {
+                cntRows = rs.getInt("cnt");
+                System.out.println(cntRows + " количество строк в запросе");
+            }
+            }
+
+
+
+            try (Connection connection = getConnection();
+
                  PreparedStatement preparedStatement = connection.prepareStatement(Query)) {
 
                 System.out.println(builders);
                 preparedStatement.setTimestamp(1, t);
                 preparedStatement.setString(2, builders);
+                preparedStatement.setTimestamp(3, t);
 
                 System.out.println(t);
                 ResultSet rs = preparedStatement.executeQuery();
@@ -426,16 +451,20 @@ public class DbHandler {
                 cellStyleWhiteString.setWrapText(true);
 
 
-                while (rs.next()) {
-                    int j = rs.getInt("rnk");
-                    String type = rs.getString("type");
-                    if (type.equals("план")) {
-                        Row rowf = sheet.createRow(j * 2 - 1 + 3);
-                        Row rowp = sheet.createRow(j * 2 - 1 + 2);
-
-                    }
-
+//                while (rs.next()) {
+//                    int j = rs.getInt("rnk");
+//                    String type = rs.getString("type");
+//                    if (type.equals("план")) {
+//                        Row rowf = sheet.createRow(j * 2 - 1 + 3);
+//                        Row rowp = sheet.createRow(j * 2 - 1 + 2);
+//
+//                    }
+//
+//                }
+                for ( int i = 3; i<cntRows; i++){
+                    Row row = sheet.createRow(i);
                 }
+
 
                 ResultSet rs2 = preparedStatement.executeQuery();
 
@@ -504,9 +533,15 @@ public class DbHandler {
                     Cell c_finishBaseline = row.createCell(12);
                     Cell c_type = row.createCell(14);
                     Cell c_materialLabel = row.createCell(13);
-
-                    Cell c_val = row.createCell(15 + week);
-                    c_val.setCellStyle(cellStyleRound);
+                    Cell c_val = row.createCell(500);
+                    try {
+                        c_val = row.createCell(15 + week);
+                        c_val.setCellStyle(cellStyleRound);
+                    } catch (Exception e) {
+                        System.out.println(c_taskId);
+                        System.out.println(c_startBaseline);
+                        System.out.println(c_finishBaseline);
+                    }
 
 
                     c_builder.setCellValue(builder);
@@ -582,7 +617,7 @@ public class DbHandler {
 
                 }
 
-                for (int row = 3; row < rnk*2+3; row++) {
+                for (int row = 3; row < rnk * 2 + 3; row++) {
                     for (int a = 1; a < 14; a++) {
                         try {
                             sheet.addMergedRegion(new CellRangeAddress(row, row + 1, a, a));

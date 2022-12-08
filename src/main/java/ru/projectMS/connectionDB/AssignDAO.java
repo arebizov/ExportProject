@@ -49,6 +49,7 @@ public class AssignDAO {
         int periodInt = (int) periodAssign;
         float perDay = value / periodInt;
         float perDayNull = 0;
+        String fact = "факт";
         Configuration configuration = new Configuration().addAnnotatedClass(ProjectData.class);
         SessionFactory sessionFactory = configuration.buildSessionFactory();
         Session session = sessionFactory.getCurrentSession();
@@ -66,10 +67,13 @@ public class AssignDAO {
                 vMonday.add(Calendar.DAY_OF_MONTH, -monday + 2);
 
                 ProjectData projectData = new ProjectData(resourceName, taskid, taskName, vStart.getTime(), perDay, GUID, vMonday.getTime(), resourceType, builder, typeWork, actFinish, sumTask, start, finishDate, GUID, materialLabel, modifiedDate, types);
-                ProjectData projectDataNull = new ProjectData(resourceName, taskid, taskName, vStart.getTime(), perDayNull, GUID, vMonday.getTime(), resourceType, builder, typeWork, actFinish, sumTask, start, finishDate, GUID, materialLabel, modifiedDate, types);
+                if (types.equals("план")){
+                    ProjectData projectDataNull = new ProjectData(resourceName, taskid, taskName, vStart.getTime(), perDayNull, GUID, vMonday.getTime(), resourceType, builder, typeWork, actFinish, sumTask, start, finishDate, GUID, materialLabel, modifiedDate, fact);
+                    session.save(projectDataNull);
+                }
 
                 session.save(projectData);
-                session.save(projectDataNull);
+
 
             }
             session.getTransaction().commit();

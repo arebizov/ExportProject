@@ -32,7 +32,7 @@ public class ProjectList {
         {
             System.out.println("id; наименование проекта; дата изменения");
             String Query = "select  rank() over (partition by t. project_name order by t.modified_date desc ) rnk, * from (\n" +
-                    "select distinct project_name , modified_date from"+schema+"project) t";
+                    "select distinct project_name , modified_date from"+schema+"project_aggt) t";
 
             ArrayList<Projects> projectsArrayList = new ArrayList<>();
             try (Connection connection = getConnection();
@@ -59,7 +59,7 @@ public class ProjectList {
                 throw new RuntimeException(e);
             }
 
-            System.out.println("Выберете документ (id проекта): ");
+            System.out.println("Выберите документ (id проекта): ");
             Scanner scanner = new Scanner(System.in);
             int sel = scanner.nextInt();
             timestamp = projectsArrayList.get(sel).modifiedDate;
